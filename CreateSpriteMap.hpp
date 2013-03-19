@@ -70,16 +70,16 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 	 break;
 	}
 
-	float cw = static_cast<float>( content.size.w) / static_cast<float>(w);
-	float ch = static_cast<float>( content.size.h) / static_cast<float>(h);
-	float cx = static_cast<float>( content.coord.x) / static_cast<float>(w);
-	float cy = 1.0f - ((static_cast<float>( content.coord.y) / static_cast<float>(h)) + ch);
+	float cw = static_cast<float>( content.size.w-pad*2) / static_cast<float>(w);
+	float ch = static_cast<float>( content.size.h-pad*2) / static_cast<float>(h);
+	float cx = static_cast<float>( content.coord.x+pad) / static_cast<float>(w);
+	float cy = 1.0f - ((static_cast<float>( content.coord.y+pad) / static_cast<float>(h)) + ch);
 	float cz = static_cast<float>( content.coord.z);
 	
 	rhtpak_hdr_hash &res = rmap[hashval];
 	res.hash = hashval;
-	res.w = content.size.w;
-	res.h = content.size.h;
+	res.w = content.size.w-pad*2;
+	res.h = content.size.h-pad*2;
 	res.flags = content.rotated ? 1 : 0;
 	res.i = content.coord.z;
 	
