@@ -158,10 +158,16 @@ public:
     ++next_layer;
   }
   
-  void WriteHashMap( const std::map< unsigned int, rhtpak_hdr_hash > & spriteMap ) {
+  void WriteHashMap( unsigned int seed, const std::map< unsigned int, rhtpak_hdr_hash > & spriteMap ) {
     
       std::map< unsigned int, rhtpak_hdr_hash >::const_iterator itor = spriteMap.begin();
       std::map< unsigned int, rhtpak_hdr_hash >::const_iterator end = spriteMap.end();
+      
+      // UGLY - rewind, and write header AGAIN with seed 
+      Seek( 0, SEEK_SET );
+      header.seed = seed;
+      Write(header);
+      /////////////////////
 
       Seek( header.hash_data_ptr, SEEK_SET);
       

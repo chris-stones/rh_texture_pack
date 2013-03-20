@@ -164,10 +164,12 @@ int main(int argc, char ** argv) {
    }
   }
   
-  std::map< unsigned int, rhtpak_hdr_hash > spriteMap = 
-    CreateSpriteMap(outputContent, args.resources, args.width, args.height, args.pad);
+  unsigned int seed = 0;
   
-  outputFile.WriteHashMap( spriteMap );
+  std::map< unsigned int, rhtpak_hdr_hash > spriteMap = 
+    CreateSpriteMap(outputContent, args.resources, args.width, args.height, args.pad, &seed);
+  
+  outputFile.WriteHashMap( seed, spriteMap );
     
   imgFreeAll(native_image);
  

@@ -11,6 +11,7 @@ struct rhtpak_hdr {
   unsigned int h;		// height if constant
   unsigned int depth;		// number of textures
   unsigned int resources;	// number of resources ( sprites )
+  unsigned int seed;		// hash seed
   unsigned int text_data_ptr;	// pointer to rhtpak_hdr_tex_data. ( array length is rhtpak_hdr::depth )
   unsigned int hash_data_ptr;	// pointer to rhtpak_hdr_hash ( array length is rhtpak_hdr::resources )
 };

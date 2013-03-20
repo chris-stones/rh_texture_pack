@@ -37,7 +37,7 @@ static std::string get_game_resource_name(std::string hashString, const char * r
   return hashString;
 }
 
-template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(const BinPack2D::ContentAccumulator<_T> &outputContent, const char * resource_root, int w, int h, int pad) {
+template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(const BinPack2D::ContentAccumulator<_T> &outputContent, const char * resource_root, int w, int h, int pad, unsigned int * seed_out) {
   
   // TODO: take padding into account when generating tex-coords!!!
   
@@ -118,6 +118,9 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 	break;
       ++seed;
     }
+    
+    if(seed_out)
+      *seed_out = seed;
     
     return rmap; 
 }
