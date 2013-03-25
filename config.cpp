@@ -73,6 +73,26 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 	  arguments->format = IMG_FMT_YUVA420P_PMA;
 	  break;
 	}
+	if(strcasecmp(arg,"dxt1")==0) {
+	  arguments->format = IMG_FMT_DXT1;
+	  break;
+	}
+	if(strcasecmp(arg,"dxt2")==0) {
+	  arguments->format = IMG_FMT_DXT2;
+	  break;
+	}
+	if(strcasecmp(arg,"dxt3")==0) {
+	  arguments->format = IMG_FMT_DXT3;
+	  break;
+	}
+	if(strcasecmp(arg,"dxt4")==0) {
+	  arguments->format = IMG_FMT_DXT4;
+	  break;
+	}
+	if(strcasecmp(arg,"dxt5")==0) {
+	  arguments->format = IMG_FMT_DXT5;
+	  break;
+	}
       } 
       argp_usage( state );
       break;

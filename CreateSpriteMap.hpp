@@ -73,7 +73,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 	float cw = static_cast<float>( content.size.w-pad*2) / static_cast<float>(w);
 	float ch = static_cast<float>( content.size.h-pad*2) / static_cast<float>(h);
 	float cx = static_cast<float>( content.coord.x+pad) / static_cast<float>(w);
-	float cy = 1.0f - ((static_cast<float>( content.coord.y+pad) / static_cast<float>(h)) + ch);
+	float cy = static_cast<float>( content.coord.y+pad) / static_cast<float>(h);
 	float cz = static_cast<float>( content.coord.z);
 	
 	rhtpak_hdr_hash &res = rmap[hashval];
@@ -83,10 +83,10 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 	res.flags = content.rotated ? 1 : 0;
 	res.i = content.coord.z;
 	
-	res.tex_coords[0].s = cx   ; res.tex_coords[0].t = cy+ch; // tl
-	res.tex_coords[1].s = cx   ; res.tex_coords[1].t = cy;    // bl
-	res.tex_coords[2].s = cx+cw; res.tex_coords[2].t = cy+ch; // tr
-	res.tex_coords[3].s = cx+cw; res.tex_coords[3].t = cy;    // br
+	res.tex_coords[0].s = cx   ; res.tex_coords[0].t = cy; // tl
+	res.tex_coords[1].s = cx   ; res.tex_coords[1].t = cy+ch;    // bl
+	res.tex_coords[2].s = cx+cw; res.tex_coords[2].t = cy; // tr
+	res.tex_coords[3].s = cx+cw; res.tex_coords[3].t = cy+ch;    // br
 	
 	res.tex_coords[0].p = 
 	res.tex_coords[1].p = 
