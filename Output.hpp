@@ -46,6 +46,7 @@ class Output {
     header.resources = sprites;
     header.w = w;
     header.h = h;
+    header.channels = imgGetChannels((imgFormat)format);
     header.format = format;
     header.flags = 0;
     header.version = 0;

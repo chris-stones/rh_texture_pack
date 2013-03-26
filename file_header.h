@@ -9,6 +9,7 @@ struct rhtpak_hdr {
   unsigned int format;		// format if constant
   unsigned int w;		// width if constant
   unsigned int h;		// height if constant
+  unsigned int channels;	// channels if constant
   unsigned int depth;		// number of textures
   unsigned int resources;	// number of resources ( sprites )
   unsigned int seed;		// hash seed
