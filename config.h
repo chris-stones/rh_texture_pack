@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct arguments
 {
   int verbose;
@@ -18,4 +22,8 @@ struct arguments
 };
 
 arguments read_args(int argc, char ** argv );
+
+#ifdef __cplusplus
+} // extern "C" {
+#endif
 
