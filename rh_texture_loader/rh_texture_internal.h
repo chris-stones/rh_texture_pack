@@ -2,10 +2,14 @@
 #pragma once
 
 #define GL_GLEXT_PROTOTYPES 1
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 
+#ifdef TARGET_GLES2
+  #include <GLES2/gl2.h>
+  #include <GLES2/gl2ext.h>
+#else
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#endif
 
 #ifndef GL_TEXTURE_2D_ARRAY_EXT
 #define GL_TEXTURE_2D_ARRAY_EXT 0x8C1A
@@ -23,15 +27,11 @@
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 0x83F3
 #endif
 
-
-#include "gfx_format.h"
-#include "gfx_header.h"
-#include "gfx_loader.h"
-
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <libimg.h>
 
 /******************************************************************************
  * structures taken from rh_texture_packer
@@ -96,4 +96,9 @@ struct gfx_loader_type {
 
   int hash_length;
 };
+
+#include "rh_texture_loader.h"
+
+
+
 

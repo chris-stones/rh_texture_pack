@@ -9,5 +9,4 @@ add_library(rh_texture_loader ${c_source_files})
 
 #install(TARGETS rh_texture_packer RUNTIME DESTINATION bin)
 
-add_subdirectory(rh_texture_loader)
 

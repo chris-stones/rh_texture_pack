@@ -52,13 +52,13 @@ static int IsExtensionSupported(const char *extension)
 static GLenum get_gl_compression_enum(int libimg_format) {
 
 	if( (libimg_format & IMG_FMT_COMPONENT_DXT1) == IMG_FMT_COMPONENT_DXT1 )
-		return COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 
 	if( (libimg_format & IMG_FMT_COMPONENT_DXT3) == IMG_FMT_COMPONENT_DXT3 )
-		return COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 
 	if( (libimg_format & IMG_FMT_COMPONENT_DXT5) == IMG_FMT_COMPONENT_DXT5 )
-		return COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 
 	return -1;
 }
@@ -90,15 +90,15 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 			imageSize *= 16;
 
 		glCompressedTexImage3DOES(
-			target, 					// TARGET
-			0, 							// LEVEL
-			format,						// INTERNAL FORMAT
-			header->w,					// WIDTH
-			header->h, 					// HEIGHT
-			header->depth,				// DEPTH
-			0, 							// BORDER
-			imageSize,					// IMAGE SIZE
-			NULL 						// DATA
+			target, 		// TARGET
+			0, 			// LEVEL
+			format,			// INTERNAL FORMAT
+			header->w,		// WIDTH
+			header->h, 		// HEIGHT
+			header->depth,		// DEPTH
+			0, 			// BORDER
+			imageSize,		// IMAGE SIZE
+			NULL 			// DATA
 		);
 
 		return 0;
@@ -108,16 +108,16 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 		GLint internal_format = get_uncompressed_internal_format( header->format );
 
 		glTexImage3DOES(
-			target,								// TARGET
-			0,									// LEVEL
-			internal_format,					// INTERNAL FORMAT,
-			header->w,							// WIDTH
-			header->h, 							// HEIGHT
-			header->depth,						// DEPTH
-			0, 									// BORDER
-			internal_format,					// FORMAT
-			GL_UNSIGNED_BYTE,					// TYPE
-			NULL								// PIXELS
+			target,			// TARGET
+			0,			// LEVEL
+			internal_format,	// INTERNAL FORMAT,
+			header->w,		// WIDTH
+			header->h, 		// HEIGHT
+			header->depth,		// DEPTH
+			0, 			// BORDER
+			internal_format,	// FORMAT
+			GL_UNSIGNED_BYTE,	// TYPE
+			NULL			// PIXELS
 		);
 
 		return 0;
@@ -140,14 +140,14 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 			imageSize *= 16;
 
 		glCompressedTexImage2D(
-			target, 					// TARGET
-			0, 							// LEVEL
-			format,						// INTERNAL FORMAT
-			header->w,					// WIDTH
-			header->h, 					// HEIGHT
-			0, 							// BORDER
-			imageSize,					// IMAGE SIZE
-			NULL 						// DATA
+			target, 	// TARGET
+			0, 		// LEVEL
+			format,		// INTERNAL FORMAT
+			header->w,	// WIDTH
+			header->h, 	// HEIGHT
+			0, 		// BORDER
+			imageSize,	// IMAGE SIZE
+			NULL 		// DATA
 		);
 
 		return 0;
@@ -157,15 +157,15 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 		GLint internal_format = get_uncompressed_internal_format( header->format );
 
 		glTexImage2D(
-			target,								// TARGET
-			0,									// LEVEL
-			internal_format,					// INTERNAL FORMAT,
-			header->w,							// WIDTH
-			header->h, 							// HEIGHT
-			0, 									// BORDER
-			internal_format,					// FORMAT
-			GL_UNSIGNED_BYTE,					// TYPE
-			NULL								// PIXELS
+			target,			// TARGET
+			0,			// LEVEL
+			internal_format,	// INTERNAL FORMAT,
+			header->w,		// WIDTH
+			header->h, 		// HEIGHT
+			0, 			// BORDER
+			internal_format,	// FORMAT
+			GL_UNSIGNED_BYTE,	// TYPE
+			NULL			// PIXELS
 		);
 
 		return 0;
@@ -181,17 +181,17 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 		GLenum format = get_gl_compression_enum( tex_data[i].format );
 
 		glCompressedTexSubImage3DOES(
-				target,						// TARGET
-				0,							// LEVEL
-				0,							// X OFFSET
-				0,							// Y OFFSET
-				i,							// Z OFFSET
-				tex_data[i].w,				// WIDTH
-				tex_data[i].h,				// HEIGHT
-				1,							// DEPTH
-				format,						// FORMAT
-				data_len,					// SIZE
-				data						// DATA
+				target,		// TARGET
+				0,		// LEVEL
+				0,		// X OFFSET
+				0,		// Y OFFSET
+				i,		// Z OFFSET
+				tex_data[i].w,	// WIDTH
+				tex_data[i].h,	// HEIGHT
+				1,		// DEPTH
+				format,		// FORMAT
+				data_len,	// SIZE
+				data		// DATA
 		);
 
 		return 0;
@@ -201,17 +201,17 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
 
 		glTexSubImage3DOES(
-				target,							// TARGET
-				0,								// LEVEL
-				0,								// X OFFSET
-				0,								// Y OFFSET
-				i,								// Z OFFSET
-				tex_data[i].w,					// WIDTH
-				tex_data[i].h,					// HEIGHT
-				1,								// DEPTH
-				internal_format,				// FORMAT
-				GL_UNSIGNED_BYTE,				// TYPE
-				data							// DATA
+				target,			// TARGET
+				0,			// LEVEL
+				0,			// X OFFSET
+				0,			// Y OFFSET
+				i,			// Z OFFSET
+				tex_data[i].w,		// WIDTH
+				tex_data[i].h,		// HEIGHT
+				1,			// DEPTH
+				internal_format,	// FORMAT
+				GL_UNSIGNED_BYTE,	// TYPE
+				data			// DATA
 		);
 
 		return 0;
@@ -228,15 +228,15 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 		GLenum format = get_gl_compression_enum( tex_data[i].format );
 
 		glCompressedTexSubImage2D(
-				target,						// TARGET
-				0,							// LEVEL
-				0,							// X OFFSET
-				0,							// Y OFFSET
-				tex_data[i].w,				// WIDTH
-				tex_data[i].h,				// HEIGHT
-				format,						// FORMAT
-				data_len,					// SIZE
-				data						// DATA
+				target,			// TARGET
+				0,			// LEVEL
+				0,			// X OFFSET
+				0,			// Y OFFSET
+				tex_data[i].w,		// WIDTH
+				tex_data[i].h,		// HEIGHT
+				format,			// FORMAT
+				data_len,		// SIZE
+				data			// DATA
 		);
 
 		return 0;
@@ -246,15 +246,15 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
 
 		glTexSubImage2D(
-				target,							// TARGET
-				0,								// LEVEL
-				0,								// X OFFSET
-				0,								// Y OFFSET
-				tex_data[i].w,					// WIDTH
-				tex_data[i].h,					// HEIGHT
-				internal_format,				// FORMAT
-				GL_UNSIGNED_BYTE,				// TYPE
-				data							// DATA
+				target,			// TARGET
+				0,			// LEVEL
+				0,			// X OFFSET
+				0,			// Y OFFSET
+				tex_data[i].w,		// WIDTH
+				tex_data[i].h,		// HEIGHT
+				internal_format,	// FORMAT
+				GL_UNSIGNED_BYTE,	// TYPE
+				data			// DATA
 		);
 
 		return 0;
@@ -423,7 +423,7 @@ int gfx_loader_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file
 	free(tex_data);
 	free(uncompressed_buffer);
 	free(compressed_buffer);
-	if(asset) AAsset_close(asset);
+	if(asset) _CloseAsset(asset);
 
 	if(GL_ERROR() == 0) {
 
@@ -468,9 +468,10 @@ int gfx_loader_close(gfx_loader_handle loader) {
 
 static unsigned int hash( const char* _s, unsigned int seed)
 {
-	const char * s = _s;
+    const char * s = _s;
     unsigned int hash = seed;
     int len = strlen(s);
+    int i;
 
     while(len) {
     	len--;
@@ -478,7 +479,7 @@ static unsigned int hash( const char* _s, unsigned int seed)
     		break;
     }
 
-    for(int i=0;i<len;i++)
+    for(i=0;i<len;i++)
     {
     	char c = *s++;
 
@@ -492,6 +493,7 @@ static unsigned int hash( const char* _s, unsigned int seed)
     		break;
     	}
 
+    	// THANKS PAUL LARSON.
         hash = hash * 101 + c;
     }
 
@@ -500,8 +502,8 @@ static unsigned int hash( const char* _s, unsigned int seed)
 
 static int compare_hash(const void * key, const void * memb) {
 
-	const unsigned int 	gamma* k = (const unsigned int *)key;
-	const rhtpak_hdr_hash   * m = (const struct rhtpak_hdr_hash*)memb;
+	const unsigned int    * k = (const unsigned int *)key;
+	const struct rhtpak_hdr_hash * m = (const struct rhtpak_hdr_hash*)memb;
 
 	if( *k < m->hash )
 		return -1;
