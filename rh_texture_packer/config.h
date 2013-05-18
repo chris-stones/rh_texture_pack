@@ -21,7 +21,7 @@ struct arguments
   int debug;
 };
 
-arguments read_args(int argc, char ** argv );
+struct arguments read_args(int argc, char ** argv );
 
 #ifdef __cplusplus
 } // extern "C" {

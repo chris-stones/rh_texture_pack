@@ -89,7 +89,8 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 		else
 			imageSize *= 16;
 
-		glCompressedTexImage3DOES(
+
+		GL_COMPRESSED_TEX_IMAGE_3D(
 			target, 		// TARGET
 			0, 			// LEVEL
 			format,			// INTERNAL FORMAT
@@ -101,13 +102,14 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 			NULL 			// DATA
 		);
 
+
 		return 0;
 
 	} else {
 
 		GLint internal_format = get_uncompressed_internal_format( header->format );
 
-		glTexImage3DOES(
+		GL_TEX_IMAGE_3D(
 			target,			// TARGET
 			0,			// LEVEL
 			internal_format,	// INTERNAL FORMAT,
@@ -180,7 +182,7 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 
 		GLenum format = get_gl_compression_enum( tex_data[i].format );
 
-		glCompressedTexSubImage3DOES(
+		GL_COMPRESSED_TEX_SUBIMAGE_3D(
 				target,		// TARGET
 				0,		// LEVEL
 				0,		// X OFFSET
@@ -200,7 +202,7 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
 
-		glTexSubImage3DOES(
+		GL_TEX_SUMBIMAGE_3D(
 				target,			// TARGET
 				0,			// LEVEL
 				0,			// X OFFSET
@@ -307,13 +309,11 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 	}
 #endif
 
-int gfx_loader_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file, gfx_loader_handle * loader_out) {
-
-	GLenum target = GL_TEXTURE_2D;
+int rh_texpak_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file, rh_texpak_handle * loader_out) {
 	
 	AssetManagerType * asset_manager = NULL; // HACKED OUT ANDROID ASSET MANAGER!!!
 
-	struct gfx_loader_type * loader = NULL;
+	struct _texpak_type * loader = NULL;
 	unsigned int uncompressed_buffer_size = 0;
 	void * uncompressed_buffer = 0;
 	unsigned int compressed_buffer_size = 0;
@@ -324,12 +324,9 @@ int gfx_loader_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file
 	GLenum compressed_tex_format = -1;
 	int i;
 
-	if(IsExtensionSupported("GL_EXT_texture_array"))
-		target = GL_TEXTURE_2D_ARRAY_EXT;
-
 	GL_ERROR();
 
-	if(!(loader = (gfx_loader_handle)calloc(1, sizeof(struct gfx_loader_type) )))
+	if(!(loader = (struct _texpak_type *)calloc(1, sizeof(struct _texpak_type) )))
 		goto err;
 
 	if(!(asset = _OpenAsset( asset_manager, gfx_file )))
@@ -354,7 +351,12 @@ int gfx_loader_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file
 
 	compressed_tex_format = get_gl_compression_enum( header.format );
 
-	if(target == GL_TEXTURE_2D_ARRAY_EXT)
+	loader->target = GL_TEXTURE_2D;
+	
+	if((header.depth > 1) && IsExtensionSupported("GL_EXT_texture_array"))
+		loader->target = GL_TEXTURE_2D_ARRAY_EXT;
+
+	if(loader->target == GL_TEXTURE_2D_ARRAY_EXT)
 		loader->textures_length = 1;
 	else
 		loader->textures_length = header.depth;
@@ -365,16 +367,16 @@ int gfx_loader_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file
 	{
 		int i;
 		for(i=0;i<loader->textures_length;i++) {
-			glBindTexture( target, loader->textures[i]);
-			glTexParameteri( target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri( target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri( target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri( target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glBindTexture( loader->target, loader->textures[i]);
+			glTexParameteri( loader->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri( loader->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri( loader->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri( loader->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-			if(target == GL_TEXTURE_2D_ARRAY_EXT)
-				allocate_texture_array_memory( &header, target );
+			if(loader->target == GL_TEXTURE_2D_ARRAY_EXT)
+				allocate_texture_array_memory( &header, loader->target );
 			else
-				allocate_texture_memory( &header, target );
+				allocate_texture_memory( &header, loader->target );
 		}
 	}
 
@@ -404,15 +406,15 @@ int gfx_loader_open (/*AssetManagerType * asset_manager,*/ const char * gfx_file
 			if( LZ4_uncompress( (const char *)compressed_buffer, (char*)uncompressed_buffer, uncompressed_buffer_size ) < 0 )
 				goto err;
 
-			if(target == GL_TEXTURE_2D_ARRAY_EXT) {
-				if(load_texture_array_data( tex_data, i, uncompressed_buffer, uncompressed_buffer_size, target  ) != 0)
+			if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
+				if(load_texture_array_data( tex_data, i, uncompressed_buffer, uncompressed_buffer_size, loader->target  ) != 0)
 					goto err;
 			}
 			else {
 
-				glBindTexture( target, loader->textures[i]);
+				glBindTexture( loader->target, loader->textures[i]);
 
-				if(load_texture_data( tex_data, i, uncompressed_buffer, uncompressed_buffer_size, target  ) != 0)
+				if(load_texture_data( tex_data, i, uncompressed_buffer, uncompressed_buffer_size, loader->target  ) != 0)
 					goto err;
 			}
 		}
@@ -452,7 +454,7 @@ err:
 	return -1;
 }
 
-int gfx_loader_close(gfx_loader_handle loader) {
+int rh_texpak_close(rh_texpak_handle loader) {
 
 	if(loader) {
 
@@ -512,9 +514,9 @@ static int compare_hash(const void * key, const void * memb) {
 	return 0;
 }
 
-int gfx_loader_getsprite(gfx_loader_handle loader, const char * name, struct gfx_sprite *sprite) {
-
-  if(loader && sprite && name) {
+int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+  
+  if(loader && idx && name) {
 
     unsigned int key = hash( name, loader->seed );
 
@@ -522,10 +524,10 @@ int gfx_loader_getsprite(gfx_loader_handle loader, const char * name, struct gfx
 
     if(res) {
 
-      sprite->texture = loader->textures[res->i];
-      sprite->pwidth = res->w;
-      sprite->pheight = res->h;
-      memcpy( sprite->tcoords, res->tex_coords, sizeof sprite->tcoords );
+      rh_texpak_idx i = (rh_texpak_idx)(res);
+      rh_texpak_idx b = (rh_texpak_idx)(loader->hash);
+      
+      *idx = (i-b)/sizeof(struct rhtpak_hdr_hash );
 
       return 0;
     }
@@ -533,4 +535,60 @@ int gfx_loader_getsprite(gfx_loader_handle loader, const char * name, struct gfx
 
   return -1;
 }
+
+int rh_texpak_get_texture(rh_texpak_handle loader, rh_texpak_idx idx, GLuint *tex) {
+ 
+  *tex = loader->textures[ loader->hash[idx].i ];
+  
+  return 0;
+}
+
+int rh_texpak_get_size(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
+ 
+  if(w) *w = loader->hash[idx].w;
+  if(h) *h = loader->hash[idx].h;
+  
+  return 0;
+}
+
+int rh_texpak_get_depthi(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *i) {
+ 
+  *i = loader->hash[idx].i;
+}
+
+int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f) {
+  
+  *f = loader->hash[idx].tex_coords[0].p;
+}
+
+int rh_texpak_get_coords2d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords) {
+   
+  coords[0] = loader->hash[idx].tex_coords[0].s;
+  coords[1] = loader->hash[idx].tex_coords[0].t;
+  coords[2] = loader->hash[idx].tex_coords[1].s;
+  coords[3] = loader->hash[idx].tex_coords[1].t;
+  coords[4] = loader->hash[idx].tex_coords[2].s;
+  coords[5] = loader->hash[idx].tex_coords[2].t;
+  coords[6] = loader->hash[idx].tex_coords[3].s;
+  coords[7] = loader->hash[idx].tex_coords[3].t;
+}
+
+int rh_texpak_get_coords3d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords) {
+  
+  memcpy( coords, loader->hash[idx].tex_coords, sizeof loader->hash[idx].tex_coords ); 
+  return 0;
+}
+
+int rh_texpak_get_textures(rh_texpak_handle loader, int *texcount) {
+
+  *texcount = loader->textures_length;
+  return 0;
+}
+
+int rh_texpak_get_textarget(rh_texpak_handle loader, GLenum *target) {
+
+  
+  return 0;
+}
+
 

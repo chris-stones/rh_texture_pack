@@ -1,7 +1,11 @@
 
+#include <binpack2d.hpp>
+#include "Pack.hpp"
+#include "CreateSpriteMap.hpp"
+#include "FindContent.hpp"
+#include "Output.hpp"
+#include <libimgutil.h>
 
-#include<libimgutil.h>
-#include<binpack2d.hpp>
 
 #include<map>
 #include<string>
@@ -18,10 +22,7 @@
 #include "lz4.h"
 #include "lz4hc.h"
 
-#include "CreateSpriteMap.hpp"
-#include "FindContent.hpp"
-#include "Pack.hpp"
-#include "Output.hpp"
+
 
 #include "file_header.h"  
 
