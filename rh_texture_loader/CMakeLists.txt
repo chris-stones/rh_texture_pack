@@ -3,7 +3,7 @@ project(rh_texture_loader)
 
 FILE(GLOB c_source_files *.c)
 
-add_library(rh_texture_loader ${c_source_files})
+add_library(rh_texture_loader SHARED ${c_source_files})
 
 #target_link_libraries (rh_texture_loader )
 
