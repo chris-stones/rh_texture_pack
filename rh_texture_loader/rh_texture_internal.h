@@ -1,5 +1,6 @@
 
-#pragma once
+#ifndef _RH_TEXTURE_INTERNAL_H
+#define _RH_TEXTURE_INTERNAL_H
 
 #define GL_GLEXT_PROTOTYPES 1
 
@@ -27,11 +28,29 @@
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 0x83F3
 #endif
 
+#ifdef TARGET_GLES
+
+  #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3DOES
+  #define GL_TEX_IMAGE_3D 			glTexImage3DOES
+  #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3DOES
+  #define GL_COMPRESSED_TEX_SUBIMAGE_3D		glCompressedTexSubImage3DOES
+  
+#else
+
+  #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3D
+  #define GL_TEX_IMAGE_3D 			glTexImage3DOES
+  #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3D
+  #define GL_COMPRESSED_TEX_SUBIMAGE_3D 	glCompressedTexSubImage3D
+
+#endif
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <libimg.h>
+
+#include "lz4.h"
 
 /******************************************************************************
  * structures taken from rh_texture_packer
@@ -66,7 +85,7 @@ struct rhtpak_hdr_tex_data {
   struct {
     unsigned int file_offset;		// file offset of pixel data
     unsigned int file_length;		// file length of pixel data
-    unsigned int uncompressed_size;	// uncompresseed size of pixel data ( if compressed )
+    unsigned int uncompressed_size;	// Uncompressed size of pixel data ( if compressed )
 
   } channel[4]; // [0] = packed rgb(a) or planar Y, [1]= null or planar Cb, [2]=null or planar Cr, [3]=null or planar Alpha
 };
@@ -85,20 +104,20 @@ struct rhtpak_hdr_hash {
   } tex_coords[4]; // top-left, bot-left, top-right, bot-right.
 };
 
-struct gfx_loader_type {
+struct _texpak_type {
 
   GLuint * textures;
+  GLenum target;
   int textures_length;
-
   unsigned int seed;
-
   struct rhtpak_hdr_hash * hash;
-
   int hash_length;
 };
 
 #include "rh_texture_loader.h"
 
+
+#endif /*** _RH_TEXTURE_INTERNAL_H ***/
 
 
 

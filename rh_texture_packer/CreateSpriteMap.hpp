@@ -62,11 +62,11 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 	
 	unsigned int hashval = hash( hashString.c_str() , seed );
 	
-	printf("hashing %s = %d\n", hashString.c_str(), hashval);
+//	printf("hashing %s = %d\n", hashString.c_str(), hashval);
 	
 	if( rmap.find( hashval ) != rmap.end() ) {
 	 hash_collision = true;
-	 printf("HASH COLLISION WITH SEED %d, trying %d...\n", seed, seed+1); 
+//	 printf("HASH COLLISION WITH SEED %d, trying %d...\n", seed, seed+1); 
 	 break;
 	}
 
