@@ -38,7 +38,7 @@
 #else
 
   #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3D
-  #define GL_TEX_IMAGE_3D 			glTexImage3DOES
+  #define GL_TEX_IMAGE_3D 			glTexImage3D
   #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3D
   #define GL_COMPRESSED_TEX_SUBIMAGE_3D 	glCompressedTexSubImage3D
 

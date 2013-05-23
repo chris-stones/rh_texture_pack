@@ -149,6 +149,7 @@ public:
       layer.channel[channel].file_length = csize;
       layer.channel[channel].uncompressed_size = src_len;
       
+      printf("writing compressed data @ %8d (channel %d) %d -> %d\n", (int)ftell(file), channel, src_len, csize);
       Write( cdata, csize );
     }    
     
@@ -174,7 +175,9 @@ public:
       
       while(itor != end) {
 	
-	Write(itor->second);
+	const rhtpak_hdr_hash &hash = itor->second;
+	
+	Write(hash);
 	
 	itor++;
       }
