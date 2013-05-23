@@ -323,29 +323,6 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
-  
-  
-  rh_display_create(&display);
-  rh_screen_create_default(&screen, display);
-  
-  {
-//   rh_window_attr_t  window_attr = 0;
-//    int window_width;
-//    int window_height;
-    
-//    rh_texpak_get_size(texpak, texidx, &window_width, &window_height);   
-//    rh_window_attr_create(&window_attr);
-//    rh_window_attr_seti(window_attr, "w", window_width);
-//    rh_window_attr_seti(window_attr, "h", window_height);
-//    rh_window_create(&window, window_attr, screen);
-      rh_window_create(&window, NULL, screen);
-//    rh_window_attr_destroy(window_attr);
-  }
- 
-  rh_render_create(&render,window, 2,1,0);
-  rh_bind_render_window(render, window);
-  rh_input_create(&input, window);
-  
   if( rh_texpak_open(argv[1], &texpak) != 0 ) {
     printf("cant open %s\n", argv[1]);
     exit(1);
@@ -355,7 +332,30 @@ int main(int argc, char **argv) {
     printf("cant find %s in %s\n", argv[2], argv[1]);
     exit(1);
   }
+  
+  rh_display_create(&display);
+  rh_screen_create_default(&screen, display);
+  
+  {
+   rh_window_attr_t  window_attr = 0;
+   int window_width;
+   int window_height;
     
+    rh_texpak_get_size(texpak, texidx, &window_width, &window_height);   
+    rh_window_attr_create(&window_attr);
+    rh_window_attr_seti(window_attr, "w", window_width);
+    rh_window_attr_seti(window_attr, "h", window_height);
+    rh_window_create(&window, window_attr, screen);
+//    rh_window_create(&window, NULL, screen);
+    rh_window_attr_destroy(window_attr);
+  }
+ 
+  rh_render_create(&render,window, 2,1,0);
+  rh_bind_render_window(render, window);
+  rh_input_create(&input, window);
+  
+  rh_texpak_load( texpak );
+  
   rh_texpak_get_textarget(texpak, &target);
   program = create_program(target);
   

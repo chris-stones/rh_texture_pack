@@ -106,6 +106,9 @@ struct rhtpak_hdr_hash {
 
 struct _texpak_type {
 
+  struct rhtpak_hdr header;
+  FILE * asset;
+  
   GLuint * textures;
   GLenum target;
   int textures_length;
