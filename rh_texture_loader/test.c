@@ -212,7 +212,7 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
   pos_attr_loc = glGetAttribLocation(prog, "positionAttr");
   tex_attr_loc = glGetAttribLocation(prog, "texcoordAttr");
   
-  if( target == GL_TEXTURE_2D_ARRAY_EXT ) {
+  if(target == GL_TEXTURE_2D_ARRAY_EXT ) {
     
     GLfloat vbuff_data[] = {
     //    x     y     s     t     q
@@ -221,35 +221,9 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // tr
        1.0f,-1.0f, 1.0f, 1.0f, 0.0f, // br
     };
+      
+    rh_texpak_get_coords(pak,idx, 3, 5, vbuff_data + 2);
     
-    GLfloat texcoords[12];
-    
-    rh_texpak_get_coords3d(pak,idx,texcoords);
-    
-    vbuff_data[ 2] = texcoords[ 0];
-    vbuff_data[ 3] = texcoords[ 1];
-    vbuff_data[ 4] = texcoords[ 2];
-    vbuff_data[ 7] = texcoords[ 3];
-    vbuff_data[ 8] = texcoords[ 4];
-    vbuff_data[ 9] = texcoords[ 5];
-    vbuff_data[12] = texcoords[ 6];
-    vbuff_data[13] = texcoords[ 7];
-    vbuff_data[14] = texcoords[ 8];
-    vbuff_data[17] = texcoords[ 9];
-    vbuff_data[18] = texcoords[10];
-    vbuff_data[19] = texcoords[11];
-    
-    {
-      printf(	"{%8f,%8f,%8f,%8f,%8f}\n"
-		"{%8f,%8f,%8f,%8f,%8f}\n"
-		"{%8f,%8f,%8f,%8f,%8f}\n"
-		"{%8f,%8f,%8f,%8f,%8f}\n",
-		    vbuff_data[ 0],vbuff_data[ 1],vbuff_data[ 2],vbuff_data[ 3],vbuff_data[ 4],
-		    vbuff_data[ 5],vbuff_data[ 6],vbuff_data[ 7],vbuff_data[ 8],vbuff_data[ 9],
-		    vbuff_data[10],vbuff_data[11],vbuff_data[12],vbuff_data[13],vbuff_data[14],
-		    vbuff_data[15],vbuff_data[16],vbuff_data[17],vbuff_data[18],vbuff_data[19]);
-    }
-  
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,5 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
     glVertexAttribPointer(tex_attr_loc,3,GL_FLOAT,GL_FALSE,5 * sizeof(GLfloat),(const void*)(2 * sizeof(GLfloat)));
@@ -264,29 +238,7 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f,-1.0f, 1.0f, 1.0f, // br
     };
     
-    GLfloat texcoords[8];
-    
-    rh_texpak_get_coords2d(pak,idx,texcoords);
-    
-    vbuff_data[ 2] = texcoords[ 0];
-    vbuff_data[ 3] = texcoords[ 1];
-    vbuff_data[ 6] = texcoords[ 2];
-    vbuff_data[ 7] = texcoords[ 3];
-    vbuff_data[10] = texcoords[ 4];
-    vbuff_data[11] = texcoords[ 5];
-    vbuff_data[14] = texcoords[ 6];
-    vbuff_data[15] = texcoords[ 7];
-    
-    {
-      printf(	"{%8f,%8f,%8f,%8f}\n"
-		"{%8f,%8f,%8f,%8f}\n"
-		"{%8f,%8f,%8f,%8f}\n"
-		"{%8f,%8f,%8f,%8f}\n",
-		    vbuff_data[ 0],vbuff_data[ 1],vbuff_data[ 2],vbuff_data[ 3],
-		    vbuff_data[ 4],vbuff_data[ 5],vbuff_data[ 6],vbuff_data[ 7],
-		    vbuff_data[ 8],vbuff_data[ 9],vbuff_data[10],vbuff_data[11],
-		    vbuff_data[12],vbuff_data[13],vbuff_data[14],vbuff_data[15]);
-    }
+    rh_texpak_get_coords(pak,idx, 2, 4, vbuff_data + 2);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
@@ -357,24 +309,18 @@ int main(int argc, char **argv) {
   rh_texpak_load( texpak );
   
   rh_texpak_get_textarget(texpak, &target);
+  
   program = create_program(target);
   
   vbuffer = create_vbuffer( program, target, texpak, texidx);
-  
-  {
     
-    rh_texpak_get_texture(texpak, texidx, &texture);
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-  }
-  
-//glClearColor(1.0f,0.0f,1.0f,1.0f);
-  
+  rh_texpak_get_texture(texpak, texidx, &texture);
+  glActiveTexture(GL_TEXTURE0 + 0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+   
   GL_ERROR();
   
   while(!exitflag) {
-  
-//  glClear(GL_COLOR_BUFFER_BIT);
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     

@@ -659,6 +659,21 @@ int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f)
   *f = loader->hash[idx].tex_coords[0].p;
 }
 
+int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, int stride ,GLfloat *coords) {
+
+  int c;
+  int d;
+  
+  float * s = &(loader->hash[idx].tex_coords[0].s);
+  
+  for(c=0;c<4;c++)
+    for(d=0;d<dim;d++)
+      coords[c*stride+d] = s[c*3+d];
+ 
+    return 0;
+}
+
+
 int rh_texpak_get_coords2d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords) {
    
   coords[0] = loader->hash[idx].tex_coords[0].s;
