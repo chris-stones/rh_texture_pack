@@ -16,8 +16,6 @@ int rh_texpak_get_texture(rh_texpak_handle loader, rh_texpak_idx idx, GLuint *te
 int rh_texpak_get_size(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *w, unsigned int *h);
 int rh_texpak_get_depthi(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *i);
 int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f);
-int rh_texpak_get_coords2d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords);
-int rh_texpak_get_coords3d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords);
 int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, int stride ,GLfloat *coords);
 int rh_texpak_get_textures(rh_texpak_handle loader, int *texcount);
 int rh_texpak_get_textarget(rh_texpak_handle loader, GLenum *target);

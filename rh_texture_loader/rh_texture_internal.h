@@ -101,7 +101,7 @@ struct rhtpak_hdr_hash {
     float s;	      	/* s */
     float t;	      	/* t */
     float p;		/* p */
-  } tex_coords[4]; // top-left, bot-left, top-right, bot-right.
+  } tex_coords[4]; 	// top-left, bot-left, top-right, bot-right.
 };
 
 struct _texpak_type {

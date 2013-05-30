@@ -280,6 +280,12 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 		return AAsset_read(asset, ptr, count);
 	}
 
+	// returns -1 on error.
+	static int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
+
+		return AAset_seek(asset, offset, whence);
+	}
+
 	static void _CloseAsset(AssetType * asset) {
 
 		AAsset_close(asset);
@@ -289,12 +295,11 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 	typedef void	AssetManagerType;
 
 	static AssetType * _OpenAsset( AssetManagerType * manager, const char * file) {
-
-		FILE * f = fopen(file, "rb");
 		
-		return f;
+		return fopen(file, "rb");
 	}
 
+	// returns -1 on error.
 	static int _ReadAsset(AssetType * asset, void * ptr, size_t count) {
 
 		size_t r = fread(ptr, count, 1, asset);
@@ -303,6 +308,11 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 			return count;
 
 		return 0;
+	}
+
+	static int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
+
+		return fseek(asset, offset, whence);
 	}
 
 	static void _CloseAsset(AssetType * asset) {
@@ -337,7 +347,7 @@ int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out) {
   loader->hash_length = loader->header.resources;
   loader->seed = loader->header.seed;
   
-  if(fseek(loader->asset, loader->header.hash_data_ptr , SEEK_SET) != 0) {
+  if(_SeekAsset(loader->asset, loader->header.hash_data_ptr , SEEK_SET) < 0) {
     LOGW("%s - seek error %s\n", __FUNCTION__, gfx_file);
     goto err;
   }
@@ -363,7 +373,7 @@ err:
   if(loader) {
     free(loader->hash);
     if(loader->asset)
-      fclose(loader->asset);
+      _CloseAsset(loader->asset);
     free(loader);
   }
   
@@ -384,7 +394,7 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	GLenum compressed_tex_format = -1;
 	int i;
 
-	if(fseek(loader->asset, loader->header.text_data_ptr, SEEK_SET) != 0) {
+	if(_SeekAsset(loader->asset, loader->header.text_data_ptr, SEEK_SET) < 0) {
 	  LOGW("%s - seek error\n", __FUNCTION__);
 	  goto err;
 	}
@@ -444,7 +454,7 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	
 	for(i=0;i<loader->header.depth;i++) {
 	  
-	  if(fseek(loader->asset, tex_data[i].channel[0].file_offset, SEEK_SET) != 0) {
+	  if(_SeekAsset(loader->asset, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
 	    LOGW("%s - seek error\n", __FUNCTION__);
 	    goto err;
 	  }
@@ -557,7 +567,7 @@ int rh_texpak_close(rh_texpak_handle loader) {
 			glDeleteTextures(loader->textures_length, loader->textures);
 		free(loader->textures);
 		if(loader->asset)
-		  fclose(loader->asset);
+		  _CloseAsset(loader->asset);
 		free(loader);
 	}
 
@@ -671,25 +681,6 @@ int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, in
       coords[c*stride+d] = s[c*3+d];
  
     return 0;
-}
-
-
-int rh_texpak_get_coords2d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords) {
-   
-  coords[0] = loader->hash[idx].tex_coords[0].s;
-  coords[1] = loader->hash[idx].tex_coords[0].t;
-  coords[2] = loader->hash[idx].tex_coords[1].s;
-  coords[3] = loader->hash[idx].tex_coords[1].t;
-  coords[4] = loader->hash[idx].tex_coords[2].s;
-  coords[5] = loader->hash[idx].tex_coords[2].t;
-  coords[6] = loader->hash[idx].tex_coords[3].s;
-  coords[7] = loader->hash[idx].tex_coords[3].t;
-}
-
-int rh_texpak_get_coords3d(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *coords) {
-  
-  memcpy( coords, loader->hash[idx].tex_coords, sizeof loader->hash[idx].tex_coords ); 
-  return 0;
 }
 
 int rh_texpak_get_textures(rh_texpak_handle loader, int *texcount) {
