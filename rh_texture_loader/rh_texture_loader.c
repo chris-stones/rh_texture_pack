@@ -266,64 +266,10 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 	return -1;
 }
 
-#if(TARGET_ANDROID)
-	typedef AAsset 			AssetType;
-	typedef AAssetManager		AssetManagerType;
-
-	static AssetType * _OpenAsset( AssetManagerType * manager, const char * file) {
-
-		return AAssetManager_open( manager, file, AASSET_MODE_STREAMING);
-	}
-
-	static int _ReadAsset(AssetType * asset, void * ptr, size_t count) {
-
-		return AAsset_read(asset, ptr, count);
-	}
-
-	// returns -1 on error.
-	static int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
-
-		return AAset_seek(asset, offset, whence);
-	}
-
-	static void _CloseAsset(AssetType * asset) {
-
-		AAsset_close(asset);
-	}
-#else
-	typedef FILE	AssetType;
-	typedef void	AssetManagerType;
-
-	static AssetType * _OpenAsset( AssetManagerType * manager, const char * file) {
-		
-		return fopen(file, "rb");
-	}
-
-	// returns -1 on error.
-	static int _ReadAsset(AssetType * asset, void * ptr, size_t count) {
-
-		size_t r = fread(ptr, count, 1, asset);
-
-		if(r == 1)
-			return count;
-
-		return 0;
-	}
-
-	static int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
-
-		return fseek(asset, offset, whence);
-	}
-
-	static void _CloseAsset(AssetType * asset) {
-
-		fclose(asset);
-	}
-#endif
-
 int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out) {
   
-  AssetManagerType * asset_manager = NULL; // HACKED OUT ANDROID ASSET MANAGER!!!
+  AssetManagerType * asset_manager = GetAndroidAssetManager();
+  
   struct _texpak_type * loader = NULL;
   
   if(!(loader = (struct _texpak_type *)calloc(1, sizeof(struct _texpak_type) ))) {
