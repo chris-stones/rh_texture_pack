@@ -11,6 +11,21 @@
   #endif
 #endif
 
+#ifdef __ANDROID__
+	#include <android/log.h>
+	#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
+	#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
+	#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "native-activity", __VA_ARGS__))
+#else
+	#define LOGI(...) ((void)printf(__VA_ARGS__))
+	#define LOGW(...) ((void)printf(__VA_ARGS__))
+	#define LOGE(...) ((void)printf(__VA_ARGS__))
+#endif
+
+#ifdef RH_TARGET_OS_ANDROID
+	#include<android/asset_manager.h>
+#endif
+
 #define GL_GLEXT_PROTOTYPES 1
 
 #ifdef RH_TARGET_API_GLES2
@@ -129,7 +144,7 @@ struct rhtpak_hdr_hash {
 	// returns -1 on error.
 	static inline int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
 
-		return AAset_seek(asset, offset, whence);
+		return AAsset_seek(asset, offset, whence);
 	}
 
 	static inline void _CloseAsset(AssetType * asset) {

@@ -2,6 +2,10 @@
 #ifndef __RH_TEXTURE_LOADER_H_
 #define __RH_TEXTURE_LOADER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct _texpak_type;
 typedef struct _texpak_type * rh_texpak_handle;
 
@@ -19,6 +23,10 @@ int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f)
 int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, int stride ,GLfloat *coords);
 int rh_texpak_get_textures(rh_texpak_handle loader, int *texcount);
 int rh_texpak_get_textarget(rh_texpak_handle loader, GLenum *target);
+
+#ifdef __cplusplus
+} // extern "C" {
+#endif
 
 #endif /*** __RH_TEXTURE_LOADER_H_ ***/
 

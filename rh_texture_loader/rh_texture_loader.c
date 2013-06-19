@@ -2,9 +2,6 @@
 
 #include "rh_texture_internal.h"
 
-#define LOGI(...) ((void)printf(__VA_ARGS__))
-#define LOGW(...) ((void)printf(__VA_ARGS__))
-
 static int __report_gl_err(const char * file, const char * func, int line) {
 
 	GLenum e;
@@ -13,7 +10,7 @@ static int __report_gl_err(const char * file, const char * func, int line) {
 	while( (e = glGetError()) != GL_NO_ERROR ) {
 
 		ecount++;
-		LOGI("%s:%s:%d gl error %d", file, func, line, e);
+		LOGE("%s:%s:%d gl error %d", file, func, line, e);
 	}
 
 	return ecount;
@@ -274,19 +271,19 @@ int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out) {
   
   if(!(loader = (struct _texpak_type *)calloc(1, sizeof(struct _texpak_type) ))) {
 		
-	  LOGW("%s - cant alloc struct\n", __FUNCTION__);
+	  LOGE("%s - cant alloc struct\n", __FUNCTION__);
 	  goto err;
   }
   
   if((loader->asset = _OpenAsset( asset_manager, gfx_file )) == NULL) {
     
-	  LOGW("%s - cant open %s\n", __FUNCTION__, gfx_file );
+	  LOGE("%s - cant open %s\n", __FUNCTION__, gfx_file );
 	  goto err;
   }
 
   if( _ReadAsset(loader->asset, &loader->header, sizeof loader->header) != sizeof loader->header ) {
     
-	  LOGW("%s - cant read header %s\n", __FUNCTION__, gfx_file );
+	  LOGE("%s - cant read header %s\n", __FUNCTION__, gfx_file );
 	  goto err;	
   }
   
@@ -294,19 +291,19 @@ int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out) {
   loader->seed = loader->header.seed;
   
   if(_SeekAsset(loader->asset, loader->header.hash_data_ptr , SEEK_SET) < 0) {
-    LOGW("%s - seek error %s\n", __FUNCTION__, gfx_file);
+	LOGE("%s - seek error %s\n", __FUNCTION__, gfx_file);
     goto err;
   }
 
   if(!(loader->hash = (struct rhtpak_hdr_hash *)malloc(loader->hash_length * sizeof(struct rhtpak_hdr_hash)))) {
     
-    LOGW("%s - cant allocate rhtpak_hdr_hash %s\n", __FUNCTION__, gfx_file );
+	LOGE("%s - cant allocate rhtpak_hdr_hash %s\n", __FUNCTION__, gfx_file );
     goto err;
   }
   
   if( _ReadAsset(loader->asset, loader->hash, loader->header.resources * sizeof(struct rhtpak_hdr_hash)) != loader->header.resources * sizeof(struct rhtpak_hdr_hash)) {
     
-    LOGW("%s - cant read rhtpak_hdr_hash %s\n", __FUNCTION__, gfx_file );
+    LOGE("%s - cant read rhtpak_hdr_hash %s\n", __FUNCTION__, gfx_file );
     goto err;
   }
   
@@ -341,19 +338,19 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	int i;
 
 	if(_SeekAsset(loader->asset, loader->header.text_data_ptr, SEEK_SET) < 0) {
-	  LOGW("%s - seek error\n", __FUNCTION__);
+	  LOGE("%s - seek error\n", __FUNCTION__);
 	  goto err;
 	}
 	 
 	if(!(tex_data = (struct rhtpak_hdr_tex_data *)malloc(loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)))) {
 	  
-		LOGW("%s - cant allocate rhtpak_hdr_tex_data\n", __FUNCTION__ );
+		LOGE("%s - cant allocate rhtpak_hdr_tex_data\n", __FUNCTION__ );
 		goto err;
 	}
 	
 	if( _ReadAsset(loader->asset, tex_data, loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)) != loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)) {
 	  
-		LOGW("%s - cant read rhtpak_hdr_tex_data\n", __FUNCTION__ );
+		LOGE("%s - cant read rhtpak_hdr_tex_data\n", __FUNCTION__ );
 		goto err;
 	}
 	
@@ -366,10 +363,10 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 	if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
 		loader->textures_length = 1;
-		printf("using GL_TEXTURE_2D_ARRAY_EXT\n");
+		LOGI("using GL_TEXTURE_2D_ARRAY_EXT\n");
 	} else {
 		loader->textures_length = loader->header.depth;
-		printf("using GL_TEXTURE_2D\n");
+		LOGI("using GL_TEXTURE_2D\n");
 	}
 
 	loader->textures = (GLuint*)calloc(1, sizeof(GLuint) * loader->textures_length );
@@ -386,12 +383,12 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 			if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
 				if( allocate_texture_array_memory( &loader->header, loader->target ) != 0) {
-				  LOGW("%s - cannot allocate texture array memory.\n", __FUNCTION__);
+				  LOGE("%s - cannot allocate texture array memory.\n", __FUNCTION__);
 				  goto err;
 				}
 			} else {
 				if(allocate_texture_memory( &loader->header, loader->target ) != 0) {
-				  LOGW("%s - cannot allocate texture memory.\n", __FUNCTION__);
+				  LOGE("%s - cannot allocate texture memory.\n", __FUNCTION__);
 				  goto err;
 				}
 			}
@@ -401,7 +398,7 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	for(i=0;i<loader->header.depth;i++) {
 	  
 	  if(_SeekAsset(loader->asset, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
-	    LOGW("%s - seek error\n", __FUNCTION__);
+	    LOGE("%s - seek error\n", __FUNCTION__);
 	    goto err;
 	  }
 
@@ -430,21 +427,21 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 			if( _ReadAsset(loader->asset, compressed_buffer, csize) != csize) {
 				
-				LOGW("%s - cant read compressed_buffer (%d bytes)\n", __FUNCTION__, csize );
+				LOGE("%s - can't read compressed_buffer (%d bytes)\n", __FUNCTION__, csize );
 				goto err;
 			}
 
 			if( (lz4err = LZ4_uncompress( (const char *)compressed_buffer, (char*)uncompressed_buffer, ucsize ) ) < 0 ) {
 				
-				LOGW("%s - cant decompress buffer\n", __FUNCTION__ );
-				LOGW("  LZ4_uncompress(%p,%p,%d) == %d\n", compressed_buffer, uncompressed_buffer, csize, lz4err);
+				LOGE("%s - can't decompress buffer\n", __FUNCTION__ );
+				LOGE("  LZ4_uncompress(%p,%p,%d) == %d\n", compressed_buffer, uncompressed_buffer, csize, lz4err);
 				goto err;
 			}
 
 			if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
 				if(load_texture_array_data( tex_data, i, uncompressed_buffer, ucsize, loader->target  ) != 0) {
 					
-					LOGW("%s - cant load texture array\n", __FUNCTION__ );
+					LOGE("%s - can't load texture array\n", __FUNCTION__ );
 					goto err;
 				}
 			}
@@ -453,13 +450,13 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 				glBindTexture( loader->target, loader->textures[i]);
 
 				if(load_texture_data( tex_data, i, uncompressed_buffer, ucsize, loader->target  ) != 0) {
-					LOGW("%s - cant load texture data\n", __FUNCTION__ );
+					LOGE("%s - can't load texture data\n", __FUNCTION__ );
 					goto err;
 				}
 			}
 		}
 		else {
-		  LOGW("%s - cant allocate buffers 0%p, %p\n", __FUNCTION__, uncompressed_buffer, compressed_buffer );
+		  LOGE("%s - can't allocate buffers 0%p, %p\n", __FUNCTION__, uncompressed_buffer, compressed_buffer );
 		  goto err;
 		}
 	}
@@ -477,11 +474,11 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	  return 0;
 	}
 	else {
-	  LOGW("%s - GL Error\n", __FUNCTION__ );
+	  LOGE("%s - GL Error\n", __FUNCTION__ );
 	}
 
 err:
-	LOGW("%s exiting with error\n", __FUNCTION__ );
+	LOGE("%s exiting with error\n", __FUNCTION__ );
 
 	GL_ERROR();
 
@@ -581,8 +578,6 @@ int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx *
       
       *idx = (i-b)/sizeof(struct rhtpak_hdr_hash );
       
-//    printf("(%d-%d)/%d == %d\n",i,b,sizeof(struct rhtpak_hdr_hash ),*idx);
-      
       return 0;
     }
   }
@@ -608,11 +603,13 @@ int rh_texpak_get_size(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int 
 int rh_texpak_get_depthi(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *i) {
  
   *i = loader->hash[idx].i;
+  return 0;
 }
 
 int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f) {
   
   *f = loader->hash[idx].tex_coords[0].p;
+  return 0;
 }
 
 int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, int stride ,GLfloat *coords) {
