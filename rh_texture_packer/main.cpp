@@ -22,16 +22,14 @@
 #include "lz4.h"
 #include "lz4hc.h"
 
-
-
 #include "file_header.h"  
 
 typedef std::string ExtraContent;
 
-void CheckForCollisions( BinPack2D::ContentAccumulator<ExtraContent> contentAcc, const char * res_root ) {
+void CheckForCollisions( const std::vector<std::string> &allFiles, const char * res_root ) {
   
-  BinPack2D::Content<ExtraContent>::Vector::iterator itor = contentAcc.Get().begin();
-  BinPack2D::Content<ExtraContent>::Vector::iterator end  = contentAcc.Get().end();
+  std::vector<std::string>::const_iterator itor = allFiles.begin();
+  std::vector<std::string>::const_iterator end  = allFiles.end();
   
   std::map<std::string, int> colmap;
   
@@ -39,7 +37,7 @@ void CheckForCollisions( BinPack2D::ContentAccumulator<ExtraContent> contentAcc,
   
   while(itor != end) {
    
-    std::string gameresname = get_game_resource_name( (*itor).content  ,res_root );
+    std::string gameresname = get_game_resource_name( *itor, res_root );
     
     int count = ++colmap[ gameresname ];
     
@@ -69,11 +67,14 @@ int main(int argc, char ** argv) {
     
   // recursivly scan path for images.
   Path::Directory dir(args.resources);
+
+  // a record unique, and alias images.
+  UniqueImages uniqueImages;
   
   // pack images found above into our bin
-  Pack(dir, inputContent, args.pad );
+  Pack(dir, inputContent, uniqueImages, args.pad );
   
-  CheckForCollisions( inputContent, args.resources );
+  CheckForCollisions( uniqueImages.GetAll(), args.resources );
   
   inputContent.Sort( );
   
@@ -92,7 +93,7 @@ int main(int argc, char ** argv) {
   
   int layers = 0;
   
-  imgImage* dst_images[64];
+  imgImage* dst_images[64]; // FIXME!!!
   memset(dst_images, 0, sizeof dst_images);
   
   while(itor != end) {
@@ -150,7 +151,7 @@ int main(int argc, char ** argv) {
   
   Output outputFile( args.output_file, outputContent.Get().size(), args.width, args.height, layers, native_image->format );
   
-  for(int i=0;i<64;i++) {
+  for(int i=0;i<layers;i++) {
     
    if(dst_images[i]) {
 
@@ -168,7 +169,7 @@ int main(int argc, char ** argv) {
   unsigned int seed = 0;
   
   std::map< unsigned int, rhtpak_hdr_hash > spriteMap = 
-    CreateSpriteMap(outputContent, args.resources, args.width, args.height, args.pad, &seed);
+    CreateSpriteMap(outputContent, uniqueImages.GetAliasMap(), args.resources, args.width, args.height, args.pad, &seed);
   
   outputFile.WriteHashMap( seed, spriteMap );
     

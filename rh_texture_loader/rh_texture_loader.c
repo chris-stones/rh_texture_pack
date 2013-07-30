@@ -326,9 +326,33 @@ err:
   return -1;
 }
 
+/*
+static void* _rh_texpak_load(void *_loader) {
+  
+  rh_texpak_handle loader = (rh_texpak_handle)_loader;
+  
+  rh_texpak_load(loader);
+  
+  return NULL;
+}
+
+int rh_texpak_load_async(rh_texpak_handle loader)
+{
+  pthread_t thread = 0;
+  
+  int err = pthread_create(&thread, NULL, &_rh_texpak_load, (void*)loader);
+  
+  pthread_detach(thread);
+  
+  return err;
+}
+*/
+
+
+
 int rh_texpak_load ( rh_texpak_handle loader ) {
 	
-	AssetManagerType * asset_manager = NULL; // HACKED OUT ANDROID ASSET MANAGER!!!
+//	AssetManagerType * asset_manager = NULL; // HACKED OUT ANDROID ASSET MANAGER!!!
 
 	unsigned int uncompressed_buffer_size = 0;
 	void * uncompressed_buffer = 0;
@@ -400,10 +424,10 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	
 	for(i=0;i<loader->header.depth;i++) {
 	  
-	  if(_SeekAsset(loader->asset, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
-	    LOGW("%s - seek error\n", __FUNCTION__);
-	    goto err;
-	  }
+		if(_SeekAsset(loader->asset, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
+		  LOGW("%s - seek error\n", __FUNCTION__);
+		  goto err;
+		}
 
 		if( tex_data[i].channel[0].file_length > compressed_buffer_size) {
 
@@ -580,8 +604,6 @@ int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx *
       rh_texpak_idx b = (rh_texpak_idx)(loader->hash);
       
       *idx = (i-b)/sizeof(struct rhtpak_hdr_hash );
-      
-//    printf("(%d-%d)/%d == %d\n",i,b,sizeof(struct rhtpak_hdr_hash ),*idx);
       
       return 0;
     }

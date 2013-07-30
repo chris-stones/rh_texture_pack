@@ -37,13 +37,16 @@ static std::string get_game_resource_name(std::string hashString, const char * r
   return hashString;
 }
 
-template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(const BinPack2D::ContentAccumulator<_T> &outputContent, const char * resource_root, int w, int h, int pad, unsigned int * seed_out) {
+template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
   
-  // TODO: take padding into account when generating tex-coords!!!
-  
-    typename BinPack2D::Content<_T>::Vector::const_iterator itor = outputContent.Get().begin();
-    typename BinPack2D::Content<_T>::Vector::const_iterator end  = outputContent.Get().end();
-    
+    const BinPack2D::ContentAccumulator<_T> &outputContent, 
+    const std::map<std::string,std::vector<std::string> > &aliasMap,
+    const char * resource_root, 
+    int w, 
+    int h, 
+    int pad, 
+    unsigned int * seed_out)
+{ 
     std::map< unsigned int, rhtpak_hdr_hash > rmap;
     
     unsigned int seed = 0x69;
@@ -53,20 +56,20 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
       rmap.clear();
       
       bool hash_collision = false;
+      
+      typename BinPack2D::Content<_T>::Vector::const_iterator unique_itor = outputContent.Get().begin();
+      typename BinPack2D::Content<_T>::Vector::const_iterator unique_end  = outputContent.Get().end();
     
-      while( itor != end ) {
+      while( unique_itor != unique_end ) {
 	
-	const BinPack2D::Content<_T> &content = *itor;
+	const BinPack2D::Content<_T> &content = *unique_itor;
       
 	std::string hashString = get_game_resource_name(content.content, resource_root);
 	
 	unsigned int hashval = hash( hashString.c_str() , seed );
 	
-//	printf("hashing %s = %d\n", hashString.c_str(), hashval);
-	
 	if( rmap.find( hashval ) != rmap.end() ) {
 	 hash_collision = true;
-//	 printf("HASH COLLISION WITH SEED %d, trying %d...\n", seed, seed+1); 
 	 break;
 	}
 
@@ -111,7 +114,37 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 	  res = rres;
 	}
 	
-	++itor;
+	++unique_itor;
+      }
+      
+      // now link up the aliases!
+      if(!hash_collision) {
+	
+	std::map<std::string,std::vector<std::string> >::const_iterator alias_itor = aliasMap.begin();
+	std::map<std::string,std::vector<std::string> >::const_iterator alias_end  = aliasMap.end();
+	
+	while(alias_itor != alias_end) {
+	
+	  for(std::vector<std::string>::const_iterator	alias_fn = alias_itor->second.begin(); 
+							alias_fn != alias_itor->second.end(); 
+							alias_fn++)
+	  {
+	    std::string s = get_game_resource_name(*alias_fn, resource_root);
+	    int hashval = hash( s.c_str() , seed );
+	    
+	    if( rmap.find( hashval ) != rmap.end() ) {
+	      hash_collision = true;
+	      alias_itor = alias_end;
+	      break;
+	    }
+
+	    // no collisions... map alias.
+	    s = get_game_resource_name(alias_itor->first, resource_root);
+	    rmap[hashval] = rmap[hash( s.c_str(), seed )];
+	  }
+	  
+	  alias_itor++;
+	}
       }
       
       if(!hash_collision)

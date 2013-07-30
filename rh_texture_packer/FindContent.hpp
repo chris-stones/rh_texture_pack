@@ -106,8 +106,6 @@ namespace Path {
     
     void Construct(const fs::path &full_path) {
      
-//    printf("opening directory %s\n", full_path.relative_path().c_str() );
-      
       if(!fs::exists(full_path))
 	throw OpenDirException();
       
@@ -136,6 +134,4 @@ namespace Path {
     }
   };
 }
-
-
 
