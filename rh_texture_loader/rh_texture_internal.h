@@ -58,7 +58,7 @@
   #define GL_TEX_IMAGE_3D 			glTexImage3DOES
   #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3DOES
   #define GL_COMPRESSED_TEX_SUBIMAGE_3D		glCompressedTexSubImage3DOES
-  
+
 #else
 
   #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3D
@@ -151,13 +151,13 @@ struct rhtpak_hdr_hash {
 
 		AAsset_close(asset);
 	}
-	
+
 	static inline AssetManagerType * GetAndroidAssetManager() {
-	 
+
 	  /*** MEGGA HACK! ***/
-	  
+
 	  extern AAssetManager * __rh_hack_get_android_asset_manager();
-	  
+
 	  return __rh_hack_get_android_asset_manager();
 	}
 #else
@@ -165,19 +165,22 @@ struct rhtpak_hdr_hash {
 	typedef void	AssetManagerType;
 
 	static inline AssetType * _OpenAsset( AssetManagerType * manager, const char * file) {
-		
+
 		return fopen(file, "rb");
 	}
 
-	// returns -1 on error.
+	// returns -1 on error. 0 on EOF, else, the bytes read.
 	static inline int _ReadAsset(AssetType * asset, void * ptr, size_t count) {
 
-		size_t r = fread(ptr, count, 1, asset);
+		size_t r = fread(ptr, 1, count, asset);
 
-		if(r == 1)
-			return count;
+		if(r == 0) {
+			if(feof(asset))
+				return 0;
+			return -1;
+		}
 
-		return 0;
+		return r;
 	}
 
 	static inline int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
@@ -189,9 +192,9 @@ struct rhtpak_hdr_hash {
 
 		fclose(asset);
 	}
-	
+
 	static inline AssetManagerType * GetAndroidAssetManager() {
-	 
+
 	  return NULL;
 	}
 #endif
@@ -201,7 +204,7 @@ struct _texpak_type {
 
   struct rhtpak_hdr header;
   AssetType * asset;
-  
+
   GLuint * textures;
   GLenum target;
   int textures_length;
@@ -273,7 +276,7 @@ enum imgFormat {
 
 	IMG_FMT_RGB24		=	IMG_FMT_5(PACKED24,RGBA,RED,GREEN,BLUE),
 	IMG_FMT_BGR24		=	IMG_FMT_5(PACKED24,BGRA,RED,GREEN,BLUE),
-	
+
 	/*** uncompressed formats with alpha channels ***/
 	IMG_FMT_RGBA32		=	IMG_FMT_6(PACKED32,RGBA,RED,GREEN,BLUE,ALPHA),
 	IMG_FMT_BGRA32		=	IMG_FMT_6(PACKED32,BGRA,RED,GREEN,BLUE,ALPHA),
@@ -286,7 +289,7 @@ enum imgFormat {
 	IMG_FMT_GREYA16		=	IMG_FMT_3(PACKED16,GREY,ALPHA),
 	IMG_FMT_GREYA32		=	IMG_FMT_3(PACKED32,GREY,ALPHA),
 	IMG_FMT_YUVA420P	=	IMG_FMT_6(420P,YCBCRA,Y,CB,CR,ALPHA),
-	
+
 	/*** pre-multiplied alpha versions of above ***/
 	IMG_FMT_RGBA32_PMA	=	IMG_FMT_7(PACKED32,RGBA,RED,GREEN,BLUE,ALPHA,PMA),
 	IMG_FMT_BGRA32_PMA	=	IMG_FMT_7(PACKED32,BGRA,RED,GREEN,BLUE,ALPHA,PMA),
@@ -299,8 +302,8 @@ enum imgFormat {
 	IMG_FMT_GREYA16_PMA	=	IMG_FMT_4(PACKED16,GREY,ALPHA,PMA),
 	IMG_FMT_GREYA32_PMA	=	IMG_FMT_4(PACKED32,GREY,ALPHA,PMA),
 	IMG_FMT_YUVA420P_PMA	=	IMG_FMT_7(420P,YCBCRA,Y,CB,CR,ALPHA,PMA), //hmm.. how would this work!?
-	
-	
+
+
 	IMG_FMT_RGBX32		=	IMG_FMT_5(PACKED32,RGBA,RED,GREEN,BLUE),
 	IMG_FMT_BGRX32		=	IMG_FMT_5(PACKED32,BGRA,RED,GREEN,BLUE),
 	IMG_FMT_XRGB32		=	IMG_FMT_5(PACKED32,ARGB,RED,GREEN,BLUE),
@@ -321,7 +324,7 @@ enum imgFormat {
 	IMG_FMT_DXT1  		=	IMG_FMT_4(DXT1,RED,GREEN,BLUE),
 	IMG_FMT_DXT3 		= 	IMG_FMT_5(DXT3,RED,GREEN,BLUE,ALPHA),
 	IMG_FMT_DXT5 		= 	IMG_FMT_5(DXT5,RED,GREEN,BLUE,ALPHA),
-	
+
 	// compressed formats with pre-multiplied alpha
 	IMG_FMT_DXT4 		= 	IMG_FMT_6(DXT5,RED,GREEN,BLUE,ALPHA,PMA),
 	IMG_FMT_DXT2 		= 	IMG_FMT_6(DXT3,RED,GREEN,BLUE,ALPHA,PMA),
