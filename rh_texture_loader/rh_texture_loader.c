@@ -263,99 +263,116 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 	return -1;
 }
 
-int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out) {
-  
-  AssetManagerType * asset_manager = GetAndroidAssetManager();
-  
+static int _setup_access_functionptrs(rh_texpak_handle  _loader) {
+
+#ifdef __ANDROID__
+	if(loader->flags & RH_RAWPAK_ANDROID_APK) {
+
+		_setup_file_android(&_loader->file);
+		return 0;
+	}
+#endif
+
+	_setup_file_filesystem(&_loader->file);
+	return 0;
+}
+
+int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out, int flags) {
+
   struct _texpak_type * loader = NULL;
-  
+
   if(!(loader = (struct _texpak_type *)calloc(1, sizeof(struct _texpak_type) ))) {
-		
+
 	  LOGE("%s - cant alloc struct\n", __FUNCTION__);
 	  goto err;
   }
-  
-  if((loader->asset = _OpenAsset( asset_manager, gfx_file )) == NULL) {
-    
+
+  loader->flags = flags;
+
+  _setup_access_functionptrs(loader);
+
+  RHF_GETMGR(loader->file);
+
+  if(RHF_OPEN(loader->file, gfx_file) != 0) {
+
 	  LOGE("%s - cant open %s\n", __FUNCTION__, gfx_file );
 	  goto err;
   }
 
-  if( _ReadAsset(loader->asset, &loader->header, sizeof loader->header) != sizeof loader->header ) {
-    
+  if( RHF_READ(loader->file, &loader->header, sizeof loader->header) != sizeof loader->header ) {
+
 	  LOGE("%s - cant read header %s\n", __FUNCTION__, gfx_file );
-	  goto err;	
+	  goto err;
   }
-  
+
   loader->hash_length = loader->header.resources;
   loader->seed = loader->header.seed;
-  
-  if(_SeekAsset(loader->asset, loader->header.hash_data_ptr , SEEK_SET) < 0) {
+
+  if(RHF_SEEK(loader->file, loader->header.hash_data_ptr , SEEK_SET) != 0) {
 	LOGE("%s - seek error %s\n", __FUNCTION__, gfx_file);
     goto err;
   }
 
   if(!(loader->hash = (struct rhtpak_hdr_hash *)malloc(loader->hash_length * sizeof(struct rhtpak_hdr_hash)))) {
-    
+
 	LOGE("%s - cant allocate rhtpak_hdr_hash %s\n", __FUNCTION__, gfx_file );
     goto err;
   }
-  
-  if( _ReadAsset(loader->asset, loader->hash, loader->header.resources * sizeof(struct rhtpak_hdr_hash)) != loader->header.resources * sizeof(struct rhtpak_hdr_hash)) {
-    
+
+  if( RHF_READ(loader->file, loader->hash, loader->header.resources * sizeof(struct rhtpak_hdr_hash)) != loader->header.resources * sizeof(struct rhtpak_hdr_hash)) {
+
     LOGE("%s - cant read rhtpak_hdr_hash %s\n", __FUNCTION__, gfx_file );
     goto err;
   }
-  
+
   *loader_out = loader;
-  
+
   return 0;
-  
+
 err:
 
   if(loader) {
     free(loader->hash);
-    if(loader->asset)
-      _CloseAsset(loader->asset);
+    RHF_CLOSE(loader->file);
     free(loader);
   }
-  
+
   return -1;
 }
 
 int rh_texpak_load ( rh_texpak_handle loader ) {
-	
+
 	unsigned int uncompressed_buffer_size = 0;
 	void * uncompressed_buffer = 0;
 	unsigned int compressed_buffer_size = 0;
 	void * compressed_buffer = NULL;
-	
+
 	struct rhtpak_hdr_tex_data *tex_data = NULL;
-	
+
 	GLenum compressed_tex_format = -1;
 	int i;
 
-	if(_SeekAsset(loader->asset, loader->header.text_data_ptr, SEEK_SET) < 0) {
+	if(RHF_SEEK(loader->file, loader->header.text_data_ptr, SEEK_SET) < 0) {
 	  LOGE("%s - seek error\n", __FUNCTION__);
 	  goto err;
 	}
-	 
+
 	if(!(tex_data = (struct rhtpak_hdr_tex_data *)malloc(loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)))) {
-	  
+
 		LOGE("%s - cant allocate rhtpak_hdr_tex_data\n", __FUNCTION__ );
 		goto err;
 	}
-	
-	if( _ReadAsset(loader->asset, tex_data, loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)) != loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)) {
-	  
+
+	if( RHF_READ(loader->file, tex_data, loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)) != loader->header.depth * sizeof(struct rhtpak_hdr_tex_data)) {
+
 		LOGE("%s - cant read rhtpak_hdr_tex_data\n", __FUNCTION__ );
 		goto err;
 	}
-	
+
 	compressed_tex_format = get_gl_compression_enum( loader->header.format );
 
 	loader->target = GL_TEXTURE_2D;
-	
+
 	if((loader->header.depth > 1) && IsExtensionSupported("GL_EXT_texture_array"))
 		loader->target = GL_TEXTURE_2D_ARRAY_EXT;
 
@@ -392,10 +409,10 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 			}
 		}
 	}
-	
+
 	for(i=0;i<loader->header.depth;i++) {
-	  
-	  if(_SeekAsset(loader->asset, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
+
+	  if(RHF_SEEK(loader->file, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
 	    LOGE("%s - seek error\n", __FUNCTION__);
 	    goto err;
 	  }
@@ -417,20 +434,20 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 		}
 
 		if(uncompressed_buffer && compressed_buffer) {
-		  
+
 			int lz4err = 0;
-			
+
 			unsigned int csize  = tex_data[i].channel[0].file_length;
 			unsigned int ucsize = tex_data[i].channel[0].uncompressed_size;
 
-			if( _ReadAsset(loader->asset, compressed_buffer, csize) != csize) {
-				
+			if( RHF_READ(loader->file, compressed_buffer, csize) != csize) {
+
 				LOGE("%s - can't read compressed_buffer (%d bytes)\n", __FUNCTION__, csize );
 				goto err;
 			}
 
 			if( (lz4err = LZ4_uncompress( (const char *)compressed_buffer, (char*)uncompressed_buffer, ucsize ) ) < 0 ) {
-				
+
 				LOGE("%s - can't decompress buffer\n", __FUNCTION__ );
 				LOGE("  LZ4_uncompress(%p,%p,%d) == %d\n", compressed_buffer, uncompressed_buffer, csize, lz4err);
 				goto err;
@@ -438,7 +455,7 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 			if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
 				if(load_texture_array_data( tex_data, i, uncompressed_buffer, ucsize, loader->target  ) != 0) {
-					
+
 					LOGE("%s - can't load texture array\n", __FUNCTION__ );
 					goto err;
 				}
@@ -465,8 +482,7 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	uncompressed_buffer = NULL;
 	free(compressed_buffer);
 	compressed_buffer = NULL;
-	if(loader->asset) _CloseAsset(loader->asset);
-	loader->asset = NULL;
+	RHF_CLOSE(loader->file);
 
 	if(GL_ERROR() == 0) {
 	  return 0;
@@ -481,11 +497,9 @@ err:
 	GL_ERROR();
 
 	if(loader) {
-	  
-	  if(loader->asset) 
-	    _CloseAsset(loader->asset);
-	  loader->asset = NULL;
-	  
+
+	  RHF_CLOSE(loader->file);
+
 	  if(loader->textures)
 		  glDeleteTextures(loader->textures_length, loader->textures);
 	  free(loader->textures);
@@ -507,8 +521,7 @@ int rh_texpak_close(rh_texpak_handle loader) {
 		if(loader->textures)
 			glDeleteTextures(loader->textures_length, loader->textures);
 		free(loader->textures);
-		if(loader->asset)
-		  _CloseAsset(loader->asset);
+		RHF_CLOSE(loader->file);
 		free(loader);
 	}
 
@@ -562,7 +575,7 @@ static int compare_hash(const void * key, const void * memb) {
 }
 
 int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
-  
+
   if(loader && idx && name) {
 
     unsigned int key = hash( name, loader->seed );
@@ -573,9 +586,9 @@ int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx *
 
       rh_texpak_idx i = (rh_texpak_idx)(res);
       rh_texpak_idx b = (rh_texpak_idx)(loader->hash);
-      
+
       *idx = (i-b)/sizeof(struct rhtpak_hdr_hash );
-      
+
       return 0;
     }
   }
@@ -584,28 +597,28 @@ int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx *
 }
 
 int rh_texpak_get_texture(rh_texpak_handle loader, rh_texpak_idx idx, GLuint *tex) {
- 
+
   *tex = loader->textures[ loader->hash[idx].i ];
-  
+
   return 0;
 }
 
 int rh_texpak_get_size(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
- 
+
   if(w) *w = loader->hash[idx].w;
   if(h) *h = loader->hash[idx].h;
-  
+
   return 0;
 }
 
 int rh_texpak_get_depthi(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *i) {
- 
+
   *i = loader->hash[idx].i;
   return 0;
 }
 
 int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f) {
-  
+
   *f = loader->hash[idx].tex_coords[0].p;
   return 0;
 }
@@ -614,13 +627,13 @@ int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, in
 
   int c;
   int d;
-  
+
   float * s = &(loader->hash[idx].tex_coords[0].s);
-  
+
   for(c=0;c<4;c++)
     for(d=0;d<dim;d++)
       coords[c*stride+d] = s[c*3+d];
- 
+
     return 0;
 }
 

@@ -20,7 +20,7 @@
 #endif
 
 #include<rh_window.h>
-#include<rh_texture_loader.h>
+#include"rh_texture_loader.h"
 
 #define LOGI(...) ((void)printf(__VA_ARGS__))
 #define LOGW(...) ((void)printf(__VA_ARGS__))
@@ -182,38 +182,38 @@ static GLuint _create_2d_array_program( ) {
 }
 
 static GLuint create_program(GLenum target) {
- 
+
   GLuint prog;
   GLint texLoc;
-  
+
   if(target == GL_TEXTURE_2D_ARRAY_EXT)
     prog = _create_2d_array_program();
   else
     prog = _create_2d_program();
-  
+
   texLoc = glGetUniformLocation(prog, "texSamp");
 
   glUseProgram( prog );
-  
+
   glUniform1i( texLoc , 0);
-  
-  return prog;	
+
+  return prog;
 }
 
 GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpak_idx idx) {
-  
+
   GLuint vbuff = 0;
   GLuint pos_attr_loc;
   GLuint tex_attr_loc;
-  
+
   glGenBuffers( 1, &vbuff );
   glBindBuffer(GL_ARRAY_BUFFER, vbuff);
-  
+
   pos_attr_loc = glGetAttribLocation(prog, "positionAttr");
   tex_attr_loc = glGetAttribLocation(prog, "texcoordAttr");
-  
+
   if(target == GL_TEXTURE_2D_ARRAY_EXT ) {
-    
+
     GLfloat vbuff_data[] = {
     //    x     y     s     t     q
       -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // tl
@@ -221,15 +221,15 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // tr
        1.0f,-1.0f, 1.0f, 1.0f, 0.0f, // br
     };
-      
+
     rh_texpak_get_coords(pak,idx, 3, 5, vbuff_data + 2);
-    
+
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,5 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
     glVertexAttribPointer(tex_attr_loc,3,GL_FLOAT,GL_FALSE,5 * sizeof(GLfloat),(const void*)(2 * sizeof(GLfloat)));
-    
+
   } else {
-    
+
     GLfloat vbuff_data[] = {
     //    x     y     s     t
       -1.0f, 1.0f, 0.0f, 0.0f, // tl
@@ -237,63 +237,63 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f, 1.0f, 1.0f, 0.0f, // tr
        1.0f,-1.0f, 1.0f, 1.0f, // br
     };
-    
+
     rh_texpak_get_coords(pak,idx, 2, 4, vbuff_data + 2);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
     glVertexAttribPointer(tex_attr_loc,2,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),(const void*)(2 * sizeof(GLfloat)));
   }
- 
-  glEnableVertexAttribArray(pos_attr_loc); 
+
+  glEnableVertexAttribArray(pos_attr_loc);
   glEnableVertexAttribArray(tex_attr_loc);
-  
+
   return vbuff;
 }
 
 int main(int argc, char **argv) {
-    
+
   int exitflag = 0;
-  
+
   rh_display_handle display = 0;
   rh_screen_handle  screen = 0;
   rh_window_handle  window = 0;
   rh_render_handle  render = 0;
   rh_input_handle   input = 0;
   rh_input_data     input_data = 0;
-  
+
   rh_texpak_handle texpak = 0;
   rh_texpak_idx	   texidx = 0;
-  
+
   GLuint program = 0;
   GLenum target;
   GLuint vbuffer;
   GLuint texture;
-  
+
   if(argc != 3) {
     printf("useage: %s \"texture pak file\" \"texture name\"\n", argv[0]);
     exit(1);
   }
-  
-  if( rh_texpak_open(argv[1], &texpak) != 0 ) {
+
+  if( rh_texpak_open(argv[1], &texpak, RH_TEXPAK_APP) != 0 ) {
     printf("cant open %s\n", argv[1]);
     exit(1);
   }
-  
+
   if( rh_texpak_lookup(texpak, argv[2], &texidx) != 0) {
     printf("cant find %s in %s\n", argv[2], argv[1]);
     exit(1);
   }
-  
+
   rh_display_create(&display);
   rh_screen_create_default(&screen, display);
-  
+
   {
    rh_window_attr_t  window_attr = 0;
    int window_width;
    int window_height;
-    
-    rh_texpak_get_size(texpak, texidx, &window_width, &window_height);   
+
+    rh_texpak_get_size(texpak, texidx, &window_width, &window_height);
     rh_window_attr_create(&window_attr);
     rh_window_attr_seti(window_attr, "w", window_width);
     rh_window_attr_seti(window_attr, "h", window_height);
@@ -301,35 +301,35 @@ int main(int argc, char **argv) {
 //    rh_window_create(&window, NULL, screen);
     rh_window_attr_destroy(window_attr);
   }
- 
+
   rh_render_create(&render,window, 2,1,0);
   rh_bind_render_window(render, window);
   rh_input_create(&input, window);
-  
+
   rh_texpak_load( texpak );
-  
+
   rh_texpak_get_textarget(texpak, &target);
-  
+
   program = create_program(target);
-  
+
   vbuffer = create_vbuffer( program, target, texpak, texidx);
-    
+
   rh_texpak_get_texture(texpak, texidx, &texture);
   glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, texture);
-   
+
   GL_ERROR();
-  
+
   while(!exitflag) {
-    
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
+
     GL_ERROR();
-    
+
     rh_window_swapbuffers(window);
-    
+
     if(( input_data = rh_input_get( input ) )) {
-    
+
       switch( rh_input_gettype( input_data ) ) {
 
 	case RH_INPUT_KEYPRESS:
@@ -343,14 +343,14 @@ int main(int argc, char **argv) {
       }
     }
   }
-  
+
   rh_input_destroy(input);
   rh_bind_render_window(render, NULL);
   rh_render_destroy(render);
   rh_window_destroy(window);
   rh_screen_destroy(screen);
   rh_display_destroy(display);
-  
+
   return 0;
 }
 

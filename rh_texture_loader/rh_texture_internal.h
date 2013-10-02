@@ -2,6 +2,8 @@
 #ifndef _RH_TEXTURE_INTERNAL_H
 #define _RH_TEXTURE_INTERNAL_H
 
+#include "rh_file.h"
+
 #ifdef __ANDROID__
   #ifndef RH_TARGET_API_GLES2
     #define RH_TARGET_API_GLES2
@@ -20,10 +22,6 @@
 	#define LOGI(...) ((void)printf(__VA_ARGS__))
 	#define LOGW(...) ((void)printf(__VA_ARGS__))
 	#define LOGE(...) ((void)printf(__VA_ARGS__))
-#endif
-
-#ifdef RH_TARGET_OS_ANDROID
-	#include<android/asset_manager.h>
 #endif
 
 #define GL_GLEXT_PROTOTYPES 1
@@ -127,83 +125,11 @@ struct rhtpak_hdr_hash {
   } tex_coords[4]; 	// top-left, bot-left, top-right, bot-right.
 };
 
-#ifdef RH_TARGET_OS_ANDROID
-	typedef AAsset 			AssetType;
-	typedef AAssetManager		AssetManagerType;
-
-	static inline AssetType * _OpenAsset( AssetManagerType * manager, const char * file) {
-
-		return AAssetManager_open( manager, file, AASSET_MODE_STREAMING);
-	}
-
-	static inline int _ReadAsset(AssetType * asset, void * ptr, size_t count) {
-
-		return AAsset_read(asset, ptr, count);
-	}
-
-	// returns -1 on error.
-	static inline int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
-
-		return AAsset_seek(asset, offset, whence);
-	}
-
-	static inline void _CloseAsset(AssetType * asset) {
-
-		AAsset_close(asset);
-	}
-
-	static inline AssetManagerType * GetAndroidAssetManager() {
-
-	  /*** MEGGA HACK! ***/
-
-	  extern AAssetManager * __rh_hack_get_android_asset_manager();
-
-	  return __rh_hack_get_android_asset_manager();
-	}
-#else
-	typedef FILE	AssetType;
-	typedef void	AssetManagerType;
-
-	static inline AssetType * _OpenAsset( AssetManagerType * manager, const char * file) {
-
-		return fopen(file, "rb");
-	}
-
-	// returns -1 on error. 0 on EOF, else, the bytes read.
-	static inline int _ReadAsset(AssetType * asset, void * ptr, size_t count) {
-
-		size_t r = fread(ptr, 1, count, asset);
-
-		if(r == 0) {
-			if(feof(asset))
-				return 0;
-			return -1;
-		}
-
-		return r;
-	}
-
-	static inline int _SeekAsset(AssetType * asset, off_t offset, int whence ) {
-
-		return fseek(asset, offset, whence);
-	}
-
-	static inline void _CloseAsset(AssetType * asset) {
-
-		fclose(asset);
-	}
-
-	static inline AssetManagerType * GetAndroidAssetManager() {
-
-	  return NULL;
-	}
-#endif
-
-
 struct _texpak_type {
 
-  struct rhtpak_hdr header;
-  AssetType * asset;
+	struct rhtpak_hdr header;
+
+  rh_file_t file;
 
   GLuint * textures;
   GLenum target;
@@ -211,6 +137,8 @@ struct _texpak_type {
   unsigned int seed;
   struct rhtpak_hdr_hash * hash;
   int hash_length;
+
+  int flags;
 };
 
 #include "rh_texture_loader.h"
@@ -222,7 +150,7 @@ struct _texpak_type {
 #define IMG_FMT_COMPONENT_GREEN			( 1<< 1)
 #define IMG_FMT_COMPONENT_BLUE			( 1<< 2)
 #define IMG_FMT_COMPONENT_ALPHA			( 1<< 3)
-#define IMG_FMT_COMPONENT_Y			( 1<< 4)
+#define IMG_FMT_COMPONENT_Y				( 1<< 4)
 #define IMG_FMT_COMPONENT_CB			( 1<< 5)
 #define IMG_FMT_COMPONENT_CR			( 1<< 6)
 #define IMG_FMT_COMPONENT_PLANAR		( 1<< 7)
