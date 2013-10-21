@@ -8,6 +8,8 @@ extern "C" {
 
 #define RH_TEXPAK_FILESYSTEM	0x01
 #define RH_TEXPAK_ANDROID_APK	0x02
+#define RH_TEXPAK_ENABLE_TEXTURE_ARRAY (1<<31) // enable the use of texture arrays ( if supported by hardware, see GL_EXT_texture_array )
+
 #ifdef __ANDROID__
 #define RH_TEXPAK_APP RH_TEXPAK_ANDROID_APK
 #endif
@@ -22,7 +24,7 @@ typedef size_t rh_texpak_idx;
 
 int rh_texpak_open 		(const char * gfx_file, rh_texpak_handle * loader, int flags);
 int rh_texpak_load 		(rh_texpak_handle loader ); // requires opengl context.
-int rh_texpak_lookup		(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx);
+int rh_texpak_lookup	(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx);
 int rh_texpak_close		(rh_texpak_handle loader);
 
 int rh_texpak_get_texture(rh_texpak_handle loader, rh_texpak_idx idx, GLuint *tex);

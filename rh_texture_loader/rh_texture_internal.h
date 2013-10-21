@@ -115,8 +115,8 @@ struct rhtpak_hdr_hash {
 
   unsigned int hash;  	/* resource name hash */
   unsigned int flags; 	/* flags */
-  unsigned int w;     	/* orig resource width in pixels */
-  unsigned int h;     	/* orig resource height in pixels */
+  unsigned int orig_w;     	/* orig resource width in pixels */
+  unsigned int orig_h;     	/* orig resource height in pixels */
   unsigned int i;	/* texture array index */
   struct {
     float s;	      	/* s */

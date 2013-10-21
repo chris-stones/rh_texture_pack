@@ -70,8 +70,6 @@ class Output {
 
     if( fseek( file, offset, whence ) != 0 ) {
 
-      printf("oops - bad seek %d %s\n", (int)offset, WhenceStr((int)whence));
-
       throw OutputSeekException();
     }
   }

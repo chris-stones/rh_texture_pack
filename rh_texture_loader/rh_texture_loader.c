@@ -373,7 +373,7 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 	loader->target = GL_TEXTURE_2D;
 
-	if((loader->header.depth > 1) && IsExtensionSupported("GL_EXT_texture_array"))
+	if((loader->header.depth > 1) && (loader->flags & RH_TEXPAK_ENABLE_TEXTURE_ARRAY) && IsExtensionSupported("GL_EXT_texture_array"))
 		loader->target = GL_TEXTURE_2D_ARRAY_EXT;
 
 	if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
@@ -605,8 +605,8 @@ int rh_texpak_get_texture(rh_texpak_handle loader, rh_texpak_idx idx, GLuint *te
 
 int rh_texpak_get_size(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
 
-  if(w) *w = loader->hash[idx].w;
-  if(h) *h = loader->hash[idx].h;
+  if(w) *w = loader->hash[idx].orig_w;
+  if(h) *h = loader->hash[idx].orig_h;
 
   return 0;
 }
