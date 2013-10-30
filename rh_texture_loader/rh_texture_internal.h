@@ -127,7 +127,7 @@ struct rhtpak_hdr_hash {
 
 struct _texpak_type {
 
-	struct rhtpak_hdr header;
+  struct rhtpak_hdr header;
 
   rh_file_t file;
 
@@ -137,8 +137,14 @@ struct _texpak_type {
   unsigned int seed;
   struct rhtpak_hdr_hash * hash;
   int hash_length;
-
   int flags;
+  int refcount;
+};
+
+struct _texpak_idx_type {
+
+	struct _texpak_type * pak;
+	size_t index;
 };
 
 #include "rh_texture_loader.h"

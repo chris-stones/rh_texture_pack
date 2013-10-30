@@ -513,10 +513,13 @@ err:
 	return -1;
 }
 
-int rh_texpak_close(rh_texpak_handle loader) {
+// closes the pak.
+// returns the number of still open references.
+int rh_texpak_forceclose(rh_texpak_handle loader) {
 
+	int err = 0;
 	if(loader) {
-
+		err = loader->refcount;
 		free(loader->hash);
 		if(loader->textures)
 			glDeleteTextures(loader->textures_length, loader->textures);
@@ -524,8 +527,20 @@ int rh_texpak_close(rh_texpak_handle loader) {
 		RHF_CLOSE(loader->file);
 		free(loader);
 	}
+	return err;
+}
 
-	return 0;
+// If the reference count is zero, closes the exture pak and returns zero.
+// If the reference count is NOT zero, returns the number of still open references WITHOUT closing the pak.
+int rh_texpak_close(rh_texpak_handle loader) {
+
+	int err = 0;
+
+	if(loader)
+		if(!(err = loader->refcount))
+			rh_texpak_forceclose(loader);
+
+	return err;
 }
 
 static unsigned int hash( const char* _s, unsigned int seed)
@@ -574,61 +589,76 @@ static int compare_hash(const void * key, const void * memb) {
 	return 0;
 }
 
-int rh_texpak_lookup(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+int rh_texpak_release(rh_texpak_idx idx) {
+
+	if(idx) {
+		idx->pak->refcount--;
+		free(idx);
+		return 0;
+	}
+	return -1;
+}
+
+int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
 
   if(loader && idx && name) {
 
-    unsigned int key = hash( name, loader->seed );
+	unsigned int key = hash( name, loader->seed );
 
-    struct rhtpak_hdr_hash * res = (struct rhtpak_hdr_hash *)bsearch(&key, loader->hash, loader->hash_length, sizeof(struct rhtpak_hdr_hash ), &compare_hash);
+	struct rhtpak_hdr_hash * res = (struct rhtpak_hdr_hash *)bsearch(&key, loader->hash, loader->hash_length, sizeof(struct rhtpak_hdr_hash ), &compare_hash);
 
-    if(res) {
+	if(res) {
 
-      rh_texpak_idx i = (rh_texpak_idx)(res);
-      rh_texpak_idx b = (rh_texpak_idx)(loader->hash);
+		rh_texpak_idx i = (rh_texpak_idx)(res);
+		rh_texpak_idx b = (rh_texpak_idx)(loader->hash);
 
-      *idx = (i-b)/sizeof(struct rhtpak_hdr_hash );
+		if((*idx = calloc(1, sizeof(struct _texpak_idx_type)))) {
 
-      return 0;
-    }
+		 (*idx)->index = (i-b)/sizeof(struct rhtpak_hdr_hash );
+		 (*idx)->pak = loader;
+
+		 loader->refcount++;
+
+		  return 0;
+		}
+	}
   }
-
   return -1;
 }
 
-int rh_texpak_get_texture(rh_texpak_handle loader, rh_texpak_idx idx, GLuint *tex) {
+int rh_texpak_get_texture(rh_texpak_idx idx, GLuint *tex) {
 
-  *tex = loader->textures[ loader->hash[idx].i ];
-
-  return 0;
-}
-
-int rh_texpak_get_size(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
-
-  if(w) *w = loader->hash[idx].orig_w;
-  if(h) *h = loader->hash[idx].orig_h;
+  *tex = idx->pak->textures[ idx->pak->hash[idx->index].i ];
 
   return 0;
 }
 
-int rh_texpak_get_depthi(rh_texpak_handle loader, rh_texpak_idx idx, unsigned int *i) {
+int rh_texpak_get_size(rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
 
-  *i = loader->hash[idx].i;
+  if(w) *w = idx->pak->hash[idx->index].orig_w;
+  if(h) *h = idx->pak->hash[idx->index].orig_h;
+
   return 0;
 }
 
-int rh_texpak_get_depthf(rh_texpak_handle loader, rh_texpak_idx idx, GLfloat *f) {
+int rh_texpak_get_depthi(rh_texpak_idx idx, unsigned int *i) {
 
-  *f = loader->hash[idx].tex_coords[0].p;
+  *i = idx->pak->hash[idx->index].i;
   return 0;
 }
 
-int rh_texpak_get_coords(rh_texpak_handle loader, rh_texpak_idx idx, int dim, int stride ,GLfloat *coords) {
+int rh_texpak_get_depthf(rh_texpak_idx idx, GLfloat *f) {
+
+  *f = idx->pak->hash[idx->index].tex_coords[0].p;
+  return 0;
+}
+
+int rh_texpak_get_coords(rh_texpak_idx idx, int dim, int stride ,GLfloat *coords) {
 
   int c;
   int d;
 
-  float * s = &(loader->hash[idx].tex_coords[0].s);
+  float * s = &(idx->pak->hash[idx->index].tex_coords[0].s);
 
   for(c=0;c<4;c++)
     for(d=0;d<dim;d++)

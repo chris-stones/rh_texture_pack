@@ -222,7 +222,7 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f,-1.0f, 1.0f, 1.0f, 0.0f, // br
     };
 
-    rh_texpak_get_coords(pak,idx, 3, 5, vbuff_data + 2);
+    rh_texpak_get_coords(idx, 3, 5, vbuff_data + 2);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,5 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
@@ -238,7 +238,7 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f,-1.0f, 1.0f, 1.0f, // br
     };
 
-    rh_texpak_get_coords(pak,idx, 2, 4, vbuff_data + 2);
+    rh_texpak_get_coords(idx, 2, 4, vbuff_data + 2);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  if( rh_texpak_lookup(texpak, argv[2], &texidx) != 0) {
+  if( rh_texpak_get(texpak, argv[2], &texidx) != 0) {
     printf("cant find %s in %s\n", argv[2], argv[1]);
     exit(1);
   }
@@ -293,12 +293,11 @@ int main(int argc, char **argv) {
    int window_width;
    int window_height;
 
-    rh_texpak_get_size(texpak, texidx, &window_width, &window_height);
+    rh_texpak_get_size(texidx, &window_width, &window_height);
     rh_window_attr_create(&window_attr);
     rh_window_attr_seti(window_attr, "w", window_width);
     rh_window_attr_seti(window_attr, "h", window_height);
     rh_window_create(&window, window_attr, screen);
-//    rh_window_create(&window, NULL, screen);
     rh_window_attr_destroy(window_attr);
   }
 
@@ -314,7 +313,7 @@ int main(int argc, char **argv) {
 
   vbuffer = create_vbuffer( program, target, texpak, texidx);
 
-  rh_texpak_get_texture(texpak, texidx, &texture);
+  rh_texpak_get_texture(texidx, &texture);
   glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -343,6 +342,9 @@ int main(int argc, char **argv) {
       }
     }
   }
+
+  rh_texpak_release(texidx);
+  rh_texpak_close(texpak);
 
   rh_input_destroy(input);
   rh_bind_render_window(render, NULL);
