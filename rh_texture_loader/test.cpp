@@ -18,7 +18,7 @@
 #endif
 
 #include<rh_window.h>
-#include"rh_texture_loader.h"
+#include"rh_texture_loader.hpp"
 
 #define LOGI(...) ((void)printf(__VA_ARGS__))
 #define LOGW(...) ((void)printf(__VA_ARGS__))
@@ -198,7 +198,7 @@ static GLuint create_program(GLenum target) {
   return prog;
 }
 
-GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpak_idx idx) {
+GLuint create_vbuffer(GLuint prog, GLenum target, std::shared_ptr<rh::Texture> idx) {
 
   GLuint vbuff = 0;
   GLuint pos_attr_loc;
@@ -220,7 +220,8 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f,-1.0f, 1.0f, 1.0f, 0.0f, // br
     };
 
-    rh_texpak_get_coords(idx, 3, 5, vbuff_data + 2);
+//  rh_texpak_get_coords(idx, 3, 5, vbuff_data + 2);
+	idx->ReadCoords(3, 5, vbuff_data + 2);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,5 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
@@ -236,7 +237,8 @@ GLuint create_vbuffer(GLuint prog, GLenum target, rh_texpak_handle pak, rh_texpa
        1.0f,-1.0f, 1.0f, 1.0f, // br
     };
 
-    rh_texpak_get_coords(idx, 2, 4, vbuff_data + 2);
+//    rh_texpak_get_coords(idx, 2, 4, vbuff_data + 2);
+	idx->ReadCoords(2, 4, vbuff_data + 2);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof vbuff_data, vbuff_data, GL_STATIC_DRAW);
     glVertexAttribPointer(pos_attr_loc,2,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),(const void*)(0 * sizeof(GLfloat)));
@@ -260,8 +262,9 @@ int main(int argc, char **argv) {
   rh_input_handle   input = 0;
   rh_input_data     input_data = 0;
 
-  rh_texpak_handle texpak = 0;
-  rh_texpak_idx	   texidx = 0;
+//  rh_texpak_handle texpak = 0;
+//  rh_texpak_idx	 texidx = 0;
+
 
   GLuint program = 0;
   GLenum target;
@@ -273,15 +276,19 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  if( rh_texpak_open(argv[1], &texpak, RH_TEXPAK_APP) != 0 ) {
-    printf("cant open %s\n", argv[1]);
-    exit(1);
-  }
+//  if( rh_texpak_open(argv[1], &texpak, RH_TEXPAK_APP) != 0 ) {
+//    printf("cant open %s\n", argv[1]);
+//    exit(1);
+//  }
 
-  if( rh_texpak_get(texpak, argv[2], &texidx) != 0) {
-    printf("cant find %s in %s\n", argv[2], argv[1]);
-    exit(1);
-  }
+  auto texpak = rh::TexturePak::MakeShared(argv[1],rh::TexturePak::PLATFORM_DEFAULT );
+
+//  if( rh_texpak_get(texpak, argv[2], &texidx) != 0) {
+//    printf("cant find %s in %s\n", argv[2], argv[1]);
+//    exit(1);
+//  }
+
+  auto texidx = texpak->GetTexture(argv[2]);
 
   rh_display_create(&display);
   rh_screen_create_default(&screen, display);
@@ -291,7 +298,8 @@ int main(int argc, char **argv) {
    int window_width;
    int window_height;
 
-    rh_texpak_get_size(texidx, &window_width, &window_height);
+    texidx->GetPixelSize(window_width, window_height);
+
     rh_window_attr_create(&window_attr);
     rh_window_attr_seti(window_attr, "w", window_width);
     rh_window_attr_seti(window_attr, "h", window_height);
@@ -303,15 +311,19 @@ int main(int argc, char **argv) {
   rh_bind_render_window(render, window);
   rh_input_create(&input, window);
 
-  rh_texpak_load( texpak );
+//rh_texpak_load( texpak );
+  texpak->Load();
 
-  rh_texpak_get_textarget(texpak, &target);
+//rh_texpak_get_textarget(texpak, &target);
+  target = texpak->GetTarget();
 
   program = create_program(target);
 
-  vbuffer = create_vbuffer( program, target, texpak, texidx);
+  vbuffer = create_vbuffer( program, target, texidx);
 
-  rh_texpak_get_texture(texidx, &texture);
+//rh_texpak_get_texture(texidx, &texture);
+  texture = texidx->GetTexture();
+
   glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -341,8 +353,11 @@ int main(int argc, char **argv) {
     }
   }
 
-  rh_texpak_release(texidx);
-  rh_texpak_close(texpak);
+//rh_texpak_release(texidx);
+//rh_texpak_close(texpak);
+  texidx.reset();
+  texpak.reset();
+
 
   rh_input_destroy(input);
   rh_bind_render_window(render, NULL);

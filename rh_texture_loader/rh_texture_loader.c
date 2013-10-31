@@ -660,11 +660,31 @@ int rh_texpak_get_coords(rh_texpak_idx idx, int dim, int stride ,GLfloat *coords
 
   float * s = &(idx->pak->hash[idx->index].tex_coords[0].s);
 
+  // same format? just memcpy it.
+  if(stride==3 && d==3) {
+	memcpy(coords,s, 3*3*sizeof(float));
+	return 0;
+  }
+
+  // dim will be 2 or 3, let the compiler know so that it cam optimise the h3ll out of it.
+  if(dim==2) {
+	for(c=0;c<4;c++)
+      for(d=0;d<2;d++)
+        coords[c*stride+d] = s[c*3+d];
+	 return 0;
+  }
+  if(dim==3) {
+	for(c=0;c<4;c++)
+      for(d=0;d<3;d++)
+        coords[c*stride+d] = s[c*3+d];
+	 return 0;
+  }
+  // wont happen!
   for(c=0;c<4;c++)
     for(d=0;d<dim;d++)
       coords[c*stride+d] = s[c*3+d];
 
-    return 0;
+  return 0;
 }
 
 int rh_texpak_get_textures(rh_texpak_handle loader, int *texcount) {
