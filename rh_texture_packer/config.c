@@ -60,7 +60,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
       arguments->debug = 1;
       break;
     case 'f':
-      {
+	{
+    if(strcasecmp(arg,"rgba16")==0) {
+	  arguments->format = IMG_FMT_RGBA16_PMA;
+	  break;
+	}
 	if(strcasecmp(arg,"rgba32")==0) {
 	  arguments->format = IMG_FMT_RGBA32_PMA;
 	  break;
@@ -97,7 +101,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 	  arguments->format = IMG_FMT_DXT5;
 	  break;
 	}
-      } 
+    }
       argp_usage( state );
       break;
 
@@ -105,10 +109,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
       if (state->arg_num >= 1)
 	/* Too many arguments. */
         argp_usage (state);
-     
+
       arguments->resources = arg;
       break;
-      
+
     case ARGP_KEY_END:
       if (state->arg_num < 1 || !arguments->output_file)
         argp_usage (state);
@@ -123,19 +127,19 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 struct arguments read_args(int argc, char ** argv ) {
-  
+
   struct arguments args;
-  
+
   memset(&args,0,sizeof args);
-  
+
   // defaults
   args.width = 2048;
   args.height = 2048;
   args.depth = 64;
   args.format = IMG_FMT_RGBA32_PMA;
-  
+
   argp_parse (&argp, argc, argv, 0, 0, &args);
-  
+
   return args;
 }
 

@@ -68,10 +68,23 @@ static GLint get_uncompressed_internal_format(int libimg_format) {
 	if( (libimg_format & IMG_FMT_RGBA32) == IMG_FMT_RGBA32 )
 		return GL_RGBA;
 
+	if( (libimg_format & IMG_FMT_RGBA16) == IMG_FMT_RGBA16 )
+		return GL_RGBA;
+
 	// other supported formats are GL_ALPHA, GL_LUMINANCE and GL_LUMINANCE_ALPHA
 
 	return -1;
 }
+
+static GLint get_uncompressed_datatype(int libimg_format) {
+
+	int mask_4444 = (IMG_FMT_COMPONENT_PACKED16 );
+
+	if( ( libimg_format & mask_4444) == mask_4444 )
+		GL_UNSIGNED_SHORT_4_4_4_4;
+
+	return GL_UNSIGNED_BYTE;
+};
 
 static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum target) {
 
@@ -105,6 +118,7 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 	} else {
 
 		GLint internal_format = get_uncompressed_internal_format( header->format );
+		GLint data_type       = get_uncompressed_datatype( header->format );
 
 		GL_TEX_IMAGE_3D(
 			target,			// TARGET
@@ -115,7 +129,7 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 			header->depth,		// DEPTH
 			0, 			// BORDER
 			internal_format,	// FORMAT
-			GL_UNSIGNED_BYTE,	// TYPE
+			data_type,	// TYPE
 			NULL			// PIXELS
 		);
 
@@ -154,6 +168,7 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 	} else {
 
 		GLint internal_format = get_uncompressed_internal_format( header->format );
+		GLint data_type       = get_uncompressed_datatype( header->format );
 
 		glTexImage2D(
 			target,			// TARGET
@@ -163,7 +178,7 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 			header->h, 		// HEIGHT
 			0, 			// BORDER
 			internal_format,	// FORMAT
-			GL_UNSIGNED_BYTE,	// TYPE
+			data_type,	// TYPE
 			NULL			// PIXELS
 		);
 
@@ -198,6 +213,7 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 	} else {
 
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
+		GLint data_type       = get_uncompressed_datatype( tex_data[i].format );
 
 		GL_TEX_SUMBIMAGE_3D(
 				target,			// TARGET
@@ -209,7 +225,7 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 				tex_data[i].h,		// HEIGHT
 				1,			// DEPTH
 				internal_format,	// FORMAT
-				GL_UNSIGNED_BYTE,	// TYPE
+				data_type,	// TYPE
 				data			// DATA
 		);
 
@@ -243,6 +259,7 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 	} else {
 
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
+		GLint data_type       = get_uncompressed_datatype( tex_data[i].format );
 
 		glTexSubImage2D(
 				target,			// TARGET
@@ -252,7 +269,7 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 				tex_data[i].w,		// WIDTH
 				tex_data[i].h,		// HEIGHT
 				internal_format,	// FORMAT
-				GL_UNSIGNED_BYTE,	// TYPE
+				data_type,	// TYPE
 				data			// DATA
 		);
 
