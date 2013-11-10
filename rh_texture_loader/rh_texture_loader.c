@@ -2,6 +2,8 @@
 
 #include "rh_texture_internal.h"
 
+#include<stdio.h>
+
 static int __report_gl_err(const char * file, const char * func, int line) {
 
 	GLenum e;
@@ -80,8 +82,10 @@ static GLint get_uncompressed_datatype(int libimg_format) {
 
 	int mask_4444 = (IMG_FMT_COMPONENT_PACKED16 );
 
+//	printf("get_uncompressed_datatype() - %x & %x == %x\n", libimg_format, mask_4444, libimg_format & mask_4444);
+
 	if( ( libimg_format & mask_4444) == mask_4444 )
-		GL_UNSIGNED_SHORT_4_4_4_4;
+		return GL_UNSIGNED_SHORT_4_4_4_4;
 
 	return GL_UNSIGNED_BYTE;
 };
@@ -170,6 +174,8 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 		GLint internal_format = get_uncompressed_internal_format( header->format );
 		GLint data_type       = get_uncompressed_datatype( header->format );
 
+		GL_ERROR();
+
 		glTexImage2D(
 			target,			// TARGET
 			0,			// LEVEL
@@ -181,6 +187,8 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 			data_type,	// TYPE
 			NULL			// PIXELS
 		);
+
+		GL_ERROR();
 
 		return 0;
 	}
@@ -258,13 +266,15 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 
 	} else {
 
+		GL_ERROR();
+
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
 		GLint data_type       = get_uncompressed_datatype( tex_data[i].format );
 
 		glTexSubImage2D(
 				target,			// TARGET
 				0,			// LEVEL
-				0,			// X OFFSET
+				0,			// X OFFSETn
 				0,			// Y OFFSET
 				tex_data[i].w,		// WIDTH
 				tex_data[i].h,		// HEIGHT
@@ -272,6 +282,8 @@ static int load_texture_data( const struct rhtpak_hdr_tex_data *tex_data, int i,
 				data_type,	// TYPE
 				data			// DATA
 		);
+
+		GL_ERROR();
 
 		return 0;
 	}
@@ -429,10 +441,12 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 	for(i=0;i<loader->header.depth;i++) {
 
-	  if(RHF_SEEK(loader->file, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
-	    LOGE("%s - seek error\n", __FUNCTION__);
-	    goto err;
-	  }
+		printf("SEEK %d\n", tex_data[i].channel[0].file_offset);
+
+	    if(RHF_SEEK(loader->file, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
+	      LOGE("%s - seek error\n", __FUNCTION__);
+	      goto err;
+	    }
 
 		if( tex_data[i].channel[0].file_length > compressed_buffer_size) {
 
@@ -457,11 +471,24 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 			unsigned int csize  = tex_data[i].channel[0].file_length;
 			unsigned int ucsize = tex_data[i].channel[0].uncompressed_size;
 
+			printf("READ %d bytes\n", csize);
+
+			memset(compressed_buffer, 0, csize);
+
 			if( RHF_READ(loader->file, compressed_buffer, csize) != csize) {
 
 				LOGE("%s - can't read compressed_buffer (%d bytes)\n", __FUNCTION__, csize );
 				goto err;
 			}
+
+//			{
+//				const unsigned char * cb = (const char *)compressed_buffer;
+//				printf("%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n",
+//					cb[ 0],cb[ 1],cb[ 2],cb[ 3],cb[ 4],cb[ 5],cb[ 6],cb[ 7],
+//					cb[ 8],cb[ 9],cb[10],cb[11],cb[12],cb[13],cb[14],cb[15]);
+//			}
+
+			printf("decompress to %d bytes\n", ucsize);
 
 			if( (lz4err = LZ4_uncompress( (const char *)compressed_buffer, (char*)uncompressed_buffer, ucsize ) ) < 0 ) {
 
@@ -626,8 +653,8 @@ int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * id
 
 	if(res) {
 
-		rh_texpak_idx i = (rh_texpak_idx)(res);
-		rh_texpak_idx b = (rh_texpak_idx)(loader->hash);
+		size_t i = (size_t)(res);
+		size_t b = (size_t)(loader->hash);
 
 		if((*idx = calloc(1, sizeof(struct _texpak_idx_type)))) {
 

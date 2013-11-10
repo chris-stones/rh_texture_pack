@@ -76,6 +76,9 @@ class Output {
 
   void Write( const void * data, unsigned int size ) {
 
+	if( ftell(file) <= 0x69b4 && ((ftell(file)+size)) > 0x69b4 )
+		printf("WRITING TO FIRST LAYER RANGE %d %d\n",ftell(file), size);
+
     if(fwrite(data,size,1,file) != 1)
       throw OutputWriteException();
   }
@@ -137,7 +140,8 @@ public:
 
       int src_len = img->linearsize[channel];
 
-      void * cdata = malloc( LZ4_compressBound( src_len ) );
+//    void * cdata = malloc( LZ4_compressBound( src_len ) );
+	  void * cdata = calloc( 1, LZ4_compressBound( src_len ) );
 
       unsigned int csize = LZ4_compressHC((const char *)(img->data.channel[channel]), (char *)(cdata), src_len );
 
@@ -148,6 +152,14 @@ public:
       layer.channel[channel].uncompressed_size = src_len;
 
       printf("writing compressed data @ %8d (channel %d) %d -> %d\n", (int)ftell(file), channel, src_len, csize);
+
+	  {
+		const unsigned char * cb = (const unsigned char *)cdata;
+		printf("%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n",
+			cb[ 0],cb[ 1],cb[ 2],cb[ 3],cb[ 4],cb[ 5],cb[ 6],cb[ 7],
+			cb[ 8],cb[ 9],cb[10],cb[11],cb[12],cb[13],cb[14],cb[15]);
+	  }
+
       Write( cdata, csize );
     }
 
@@ -171,14 +183,20 @@ public:
 
       Seek( header.hash_data_ptr, SEEK_SET);
 
+	  int hashes = 0;
+
       while(itor != end) {
 
-	const rhtpak_hdr_hash &hash = itor->second;
+		const rhtpak_hdr_hash &hash = itor->second;
 
-	Write(hash);
+		Write(hash);
 
-	itor++;
-      }
+		++hashes;
+
+		itor++;
+    }
+
+    assert(hashes == sprites);
   }
 };
 

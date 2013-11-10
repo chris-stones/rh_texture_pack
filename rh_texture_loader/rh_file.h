@@ -106,7 +106,11 @@ extern "C" {
 	// returns -1 on error. 0 on EOF, else, the bytes read.
 	static inline int _ReadAsset_filesystem(rh_file_t * p, void * ptr, size_t count) {
 
-		size_t r = fread(ptr, 1, count, p->asset_filesystem);
+		size_t r;
+
+		printf("read %d bytes from %d\n",count, ftell(p->asset_filesystem) );
+		
+		r = fread(ptr, 1, count, p->asset_filesystem);
 
 		if(r == 0) {
 			if(feof(p->asset_filesystem))
@@ -119,6 +123,7 @@ extern "C" {
 
 	static inline int _SeekAsset_filesystem(rh_file_t * p, off_t offset, int whence ) {
 
+		printf("fseek %d %d %d\n", p->asset_filesystem, offset, whence);
 		return fseek(p->asset_filesystem, offset, whence);
 	}
 
