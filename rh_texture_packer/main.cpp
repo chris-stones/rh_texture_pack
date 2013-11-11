@@ -6,7 +6,6 @@
 #include "Output.hpp"
 #include <libimgutil.h>
 
-
 #include<map>
 #include<string>
 #include<vector>
@@ -53,8 +52,6 @@ void CheckForCollisions( const std::vector<std::string> &allFiles, const char * 
   assert(collisions==0);
 }
 
-
-
 int main(int argc, char ** argv) {
 
   arguments args = read_args(argc,argv);
@@ -69,7 +66,7 @@ int main(int argc, char ** argv) {
   Path::Directory dir(args.resources);
 
   // a record unique, and alias images.
-  UniqueImages uniqueImages;
+  UniqueImages uniqueImages(args);
 
   // pack images found above into our bin
   Pack(dir, inputContent, uniqueImages, args.pad );
@@ -112,7 +109,9 @@ int main(int argc, char ** argv) {
 
     imgImage * src_image = NULL;
 
-    printf("%s\n", content.content.c_str());
+	if(args.debug)
+		printf("%s\n", content.content.c_str());
+
     imgAllocAndRead(&src_image, content.content.c_str());
 
     if(args.pad) {
@@ -152,10 +151,9 @@ int main(int argc, char ** argv) {
   unsigned int seed = 0;
 
   std::map< unsigned int, rhtpak_hdr_hash > spriteMap =
-    CreateSpriteMap(outputContent, uniqueImages.GetAliasMap(), args.resources, args.width, args.height, args.pad, &seed);
+    CreateSpriteMap(outputContent, uniqueImages.GetAliasMap(), args, &seed);
 
-//Output outputFile( args.output_file, outputContent.Get().size(), args.width, args.height, layers, native_image->format );
-  Output outputFile( args.output_file, spriteMap.size(),           args.width, args.height, layers, native_image->format );
+  Output outputFile( args, args.output_file, spriteMap.size(), args.width, args.height, layers, native_image->format );
 
   for(int i=0;i<layers;i++) {
 

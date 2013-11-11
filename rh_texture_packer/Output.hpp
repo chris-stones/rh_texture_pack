@@ -76,9 +76,6 @@ class Output {
 
   void Write( const void * data, unsigned int size ) {
 
-	if( ftell(file) <= 0x69b4 && ((ftell(file)+size)) > 0x69b4 )
-		printf("WRITING TO FIRST LAYER RANGE %d %d\n",ftell(file), size);
-
     if(fwrite(data,size,1,file) != 1)
       throw OutputWriteException();
   }
@@ -100,20 +97,23 @@ class Output {
   const int format;
   int next_layer;
 
+  arguments args;
+
 public:
 
   class OutputOpenException : public std::exception {public: const char * what() const throw() { return "OutputOpenException"; } };
   class OutputWriteException : public std::exception {public: const char * what() const throw() { return "OutputWriteException"; } };
   class OutputSeekException : public std::exception {public: const char * what() const throw() { return "OutputSeekException"; } };
 
-  Output(const std::string &fn, int sprites, int w, int h,int layers, int format)
-    :	file(NULL),
-	layers(layers),
-	sprites(sprites),
-	w(w),
-	h(h),
-	format(format),
-	next_layer(0)
+  Output(const arguments &args, const std::string &fn, int sprites, int w, int h,int layers, int format)
+    :	args(args),
+		file(NULL),
+		layers(layers),
+		sprites(sprites),
+		w(w),
+		h(h),
+		format(format),
+		next_layer(0)
   {
     Open(fn.c_str());
   }
@@ -151,14 +151,8 @@ public:
       layer.channel[channel].file_length = csize;
       layer.channel[channel].uncompressed_size = src_len;
 
-      printf("writing compressed data @ %8d (channel %d) %d -> %d\n", (int)ftell(file), channel, src_len, csize);
-
-	  {
-		const unsigned char * cb = (const unsigned char *)cdata;
-		printf("%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n",
-			cb[ 0],cb[ 1],cb[ 2],cb[ 3],cb[ 4],cb[ 5],cb[ 6],cb[ 7],
-			cb[ 8],cb[ 9],cb[10],cb[11],cb[12],cb[13],cb[14],cb[15]);
-	  }
+	  if(args.debug)
+		printf("writing compressed data @ %8d (channel %d) %d -> %d\n", (int)ftell(file), channel, src_len, csize);
 
       Write( cdata, csize );
     }
@@ -185,9 +179,15 @@ public:
 
 	  int hashes = 0;
 
+	  if(args.debug)
+		printf("writing hashmap at 0x%08x (size=%d)\n", (int)ftell(file), spriteMap.size());
+
       while(itor != end) {
 
 		const rhtpak_hdr_hash &hash = itor->second;
+
+		if(args.debug)
+			printf("@ 0x%08x: hash: 0x%08x\n", (int)ftell(file), hash.hash );
 
 		Write(hash);
 

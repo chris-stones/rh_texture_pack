@@ -8,6 +8,8 @@
 #include<libimg.h>
 #include<libimgutil.h>
 
+#include "config.h"
+
 class LibImg {
 
     imgImage * img;
@@ -56,18 +58,21 @@ public:
 
 class UniqueImages
 {
-    typedef std::vector<std::string> 		StringVector;
-    typedef std::map<int,StringVector> 		HashStringVectorMap;
+    typedef std::vector<std::string> 			StringVector;
+    typedef std::map<int,StringVector>			HashStringVectorMap;
     typedef std::map<std::string,StringVector>	StringStringVector;
 
-    HashStringVectorMap 			uniqueHashStringVectorMap; 	// unique files ordered by hash.
-    StringVector 				uniqueStringVector;		// unique files.
-    StringVector				allStringVector;		// all files
-    StringStringVector 				aliasMap;			// duplicate images.
+    HashStringVectorMap 	uniqueHashStringVectorMap; 	// unique files ordered by hash.
+    StringVector 			uniqueStringVector;			// unique files.
+    StringVector			allStringVector;			// all files
+    StringStringVector 		aliasMap;					// duplicate images.
+
+    arguments args;
 
 public:
 
-    UniqueImages()
+    UniqueImages(const arguments &args)
+		:	args(args)
     {
     }
 
@@ -92,7 +97,10 @@ public:
         bool unique = true;
         for(StringVector::iterator itor = sv.begin(); unique && (itor != sv.end()); itor++)
             if(LibImg(*itor) == addImg) {
-                printf("Image %s is a duplicate of %s.\n", fn.c_str(), itor->c_str());
+
+				if(args.debug)
+					printf("Image %s is a duplicate of %s.\n", fn.c_str(), itor->c_str());
+				
                 unique = false;
 
                 aliasMap[*itor].push_back(fn);

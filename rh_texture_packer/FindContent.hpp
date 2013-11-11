@@ -57,7 +57,6 @@ public:
 
         if( imgAllocAndStat(&image, fn) != IMG_OKAY ) {
 
-//	printf("failed to open image %s\n", full_path.filename().c_str() );
             throw OpenImageException();
         }
 
@@ -65,8 +64,6 @@ public:
         h = image->height;
         path = full_path.native();
         alphaType = AlphaType::Gradient; // todo!
-
-//    printf("opened %s (%d,%d) %s \n", full_path.filename().c_str(), image->width, image->height, AlphaType::ToString(alphaType));
 
         imgFreeAll(image);
     }
