@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <libimgutil.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,6 +20,8 @@ struct arguments
   char *output_file;
   char *log_file;
   char *resources;
+  err_diffuse_kernel_t edk;
+  int edk_precision;
   int debug;
 };
 

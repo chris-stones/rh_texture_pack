@@ -100,7 +100,7 @@ int main(int argc, char ** argv) {
     if(!dst_images[content.coord.z]) {
 
       imgAllocImage(dst_images + content.coord.z);
-      dst_images[content.coord.z]->format = IMG_FMT_RGBA32;
+      dst_images[content.coord.z]->format = IMG_FMT_FLOAT_RGBA; // error diffusion requires floating colour.
       dst_images[content.coord.z]->width = args.width;
       dst_images[content.coord.z]->height = args.height;
       imgAllocPixelBuffers(dst_images[content.coord.z]);
@@ -132,6 +132,14 @@ int main(int argc, char ** argv) {
     }
 
     imguCopyRect(dst_images[content.coord.z], src_image, content.coord.x, content.coord.y, 0, 0, src_image->width, src_image->height);
+
+	if(args.edk != ERR_DIFFUSE_KERNEL_NONE) {
+
+		imguErrorDiffuseArea( dst_images[content.coord.z],
+			content.coord.x, content.coord.y,
+			src_image->width, src_image->height,
+			args.edk_precision, args.edk );
+	}
 
     imgFreeAll(src_image);
 

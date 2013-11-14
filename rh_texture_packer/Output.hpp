@@ -180,7 +180,7 @@ public:
 	  int hashes = 0;
 
 	  if(args.debug)
-		printf("writing hashmap at 0x%08x (size=%d)\n", (int)ftell(file), spriteMap.size());
+		printf("writing hashmap at 0x%08x (size=%d)\n", (int)ftell(file), (int)spriteMap.size());
 
       while(itor != end) {
 
