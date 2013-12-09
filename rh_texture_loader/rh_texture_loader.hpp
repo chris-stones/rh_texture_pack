@@ -113,7 +113,7 @@ namespace rh {
 		typedef enum {
 
 			FILESYSTEM 				= RH_TEXPAK_FILESYSTEM,				/* load from the filesystem */
-			ANDROID_APK 			= RH_TEXPAK_ENABLE_TEXTURE_ARRAY,	/* load from android APK */
+			ANDROID_APK 			= RH_TEXPAK_ANDROID_APK,			/* load from android APK */
 			PLATFORM_DEFAULT		= RH_TEXPAK_APP,					/* load from default for this platform */
 			ENABLE_TEXTURE_ARRAY 	= RH_TEXPAK_ENABLE_TEXTURE_ARRAY,	/* enable use of GL_EXT_texture_array */
 		} texture_pak_flags_enum_t;
