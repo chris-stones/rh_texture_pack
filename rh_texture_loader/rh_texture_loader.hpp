@@ -64,7 +64,7 @@ namespace rh {
 		}
 
 		template<typename _T>
-		void GetPixelWidth() const {
+		_T GetPixelWidth() const {
 
 			unsigned int native_w;
 			rh_texpak_get_size(idx, &native_w, NULL);
@@ -72,7 +72,7 @@ namespace rh {
 		}
 
 		template<typename _T>
-		void GetPixelHeight() const {
+		_T GetPixelHeight() const {
 
 			unsigned int native_h;
 			rh_texpak_get_size(idx, NULL, &native_h);
