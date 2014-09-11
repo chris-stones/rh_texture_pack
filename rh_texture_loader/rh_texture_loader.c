@@ -50,16 +50,20 @@ static int IsExtensionSupported(const char *extension)
 
 static GLenum get_gl_compression_enum(int libimg_format) {
 
-	if( (libimg_format & IMG_FMT_COMPONENT_DXT1) == IMG_FMT_COMPONENT_DXT1 )
-		return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-
-	if( (libimg_format & IMG_FMT_COMPONENT_DXT3) == IMG_FMT_COMPONENT_DXT3 )
-		return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-
-	if( (libimg_format & IMG_FMT_COMPONENT_DXT5) == IMG_FMT_COMPONENT_DXT5 )
-		return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-
-	return -1;
+	switch(libimg_format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
+	{
+		default:
+			assert(0 && "unimplemented texture compression");
+			return -1;
+		case IMG_FMT_COMPONENT_ETC1_INDEX:
+			return GL_ETC1_RGB8_OES;
+		case IMG_FMT_COMPONENT_DXT1_INDEX:
+			return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		case IMG_FMT_COMPONENT_DXT3_INDEX:
+			return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		case IMG_FMT_COMPONENT_DXT5_INDEX:
+			return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+	}
 }
 
 static GLint get_uncompressed_internal_format(int libimg_format) {
@@ -82,8 +86,6 @@ static GLint get_uncompressed_datatype(int libimg_format) {
 
 	int mask_4444 = (IMG_FMT_COMPONENT_PACKED16 );
 
-//	printf("get_uncompressed_datatype() - %x & %x == %x\n", libimg_format, mask_4444, libimg_format & mask_4444);
-
 	if( ( libimg_format & mask_4444) == mask_4444 )
 		return GL_UNSIGNED_SHORT_4_4_4_4;
 
@@ -98,11 +100,20 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 
 		GLsizei imageSize = ((header->w+3)/4) * ((header->h+3)/4) * header->depth;
 
-		if( header->format & IMG_FMT_COMPONENT_DXT1 )
-			imageSize *= 8;
-		else
-			imageSize *= 16;
-
+		switch(header->format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
+		{
+			default:
+				assert(0 && "unimplemented texture compression");
+				break;
+			case IMG_FMT_COMPONENT_ETC1_INDEX:
+			case IMG_FMT_COMPONENT_DXT1_INDEX:
+				imageSize *=  8;
+				break;
+			case IMG_FMT_COMPONENT_DXT3_INDEX:
+			case IMG_FMT_COMPONENT_DXT5_INDEX:
+				imageSize *= 16;
+				break;
+		}
 
 		GL_COMPRESSED_TEX_IMAGE_3D(
 			target, 		// TARGET
@@ -151,10 +162,20 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 
 		GLsizei imageSize = ((header->w+3)/4) * ((header->h+3)/4) * header->depth;
 
-		if( header->format & IMG_FMT_COMPONENT_DXT1 )
-			imageSize *= 8;
-		else
-			imageSize *= 16;
+		switch(header->format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
+		{
+			default:
+				assert(0 && "unimplemented texture compression");
+				break;
+			case IMG_FMT_COMPONENT_ETC1_INDEX:
+			case IMG_FMT_COMPONENT_DXT1_INDEX:
+				imageSize *=  8;
+				break;
+			case IMG_FMT_COMPONENT_DXT3_INDEX:
+			case IMG_FMT_COMPONENT_DXT5_INDEX:
+				imageSize *= 16;
+				break;
+		}
 
 		glCompressedTexImage2D(
 			target, 	// TARGET
@@ -471,8 +492,6 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 			unsigned int csize  = tex_data[i].channel[0].file_length;
 			unsigned int ucsize = tex_data[i].channel[0].uncompressed_size;
 
-			printf("READ %d bytes\n", csize);
-
 			memset(compressed_buffer, 0, csize);
 
 			if( RHF_READ(loader->file, compressed_buffer, csize) != csize) {
@@ -480,15 +499,6 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 				LOGE("%s - can't read compressed_buffer (%d bytes)\n", __FUNCTION__, csize );
 				goto err;
 			}
-
-//			{
-//				const unsigned char * cb = (const char *)compressed_buffer;
-//				printf("%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n",
-//					cb[ 0],cb[ 1],cb[ 2],cb[ 3],cb[ 4],cb[ 5],cb[ 6],cb[ 7],
-//					cb[ 8],cb[ 9],cb[10],cb[11],cb[12],cb[13],cb[14],cb[15]);
-//			}
-
-			printf("decompress to %d bytes\n", ucsize);
 
 			if( (lz4err = LZ4_uncompress( (const char *)compressed_buffer, (char*)uncompressed_buffer, ucsize ) ) < 0 ) {
 

@@ -124,6 +124,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 	  arguments->edk_precision = 8;
 	  break;
 	}
+	if(strcasecmp(arg,"etc1")==0) {
+	  arguments->format = IMG_FMT_ETC1;
+	  arguments->edk_precision = 8;
+	  break;
+	}
     }
       argp_usage( state );
       break;
