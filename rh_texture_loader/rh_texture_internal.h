@@ -2,16 +2,15 @@
 #ifndef _RH_TEXTURE_INTERNAL_H
 #define _RH_TEXTURE_INTERNAL_H
 
-#include "rh_file.h"
-
-#ifdef __ANDROID__
-  #ifndef RH_TARGET_API_GLES2
-    #define RH_TARGET_API_GLES2
-  #endif
-  #ifndef RH_TARGET_OS_ANDROID
-    #define RH_TARGET_OS_ANDROID
-  #endif
+#if defined(HAVE_CONFIG_H)
+  #include <config.h>
+#elif defined(__ANDROID__)
+  // not building with GNU Auto tools :(
+  #define HAVE_GLES2_GL2_H 1
+  #define HAVE_GLES2_GL2EXT_H 1
 #endif
+
+#include "rh_file.h"
 
 #ifdef __ANDROID__
 	#include <android/log.h>
@@ -26,12 +25,26 @@
 
 #define GL_GLEXT_PROTOTYPES 1
 
-#ifdef RH_TARGET_API_GLES2
+#if HAVE_GLES2_GL2_H
   #include <GLES2/gl2.h>
-  #include <GLES2/gl2ext.h>
-#else
+  #if HAVE_GLES2_GL2EXT_H
+    #include <GLES2/gl2ext.h>
+  #endif
+  #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3DOES
+  #define GL_TEX_IMAGE_3D 			glTexImage3DOES
+  #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3DOES
+  #define GL_COMPRESSED_TEX_SUBIMAGE_3D		glCompressedTexSubImage3DOES
+#endif
+
+#if HAVE_GL_GL_H
   #include <GL/gl.h>
-  #include <GL/glext.h>
+  #if HAVE_GL_GLEXT_H
+    #include <GL/glext.h>
+  #endif
+  #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3D
+  #define GL_TEX_IMAGE_3D 			glTexImage3D
+  #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3D
+  #define GL_COMPRESSED_TEX_SUBIMAGE_3D 	glCompressedTexSubImage3D
 #endif
 
 #ifndef GL_TEXTURE_2D_ARRAY_EXT
@@ -51,23 +64,6 @@
 #endif
 #ifndef GL_ETC1_RGB8_OES
 #define GL_ETC1_RGB8_OES 0x8D64
-#endif
-
-
-#ifdef RH_TARGET_API_GLES2
-
-  #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3DOES
-  #define GL_TEX_IMAGE_3D 			glTexImage3DOES
-  #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3DOES
-  #define GL_COMPRESSED_TEX_SUBIMAGE_3D		glCompressedTexSubImage3DOES
-
-#else
-
-  #define GL_COMPRESSED_TEX_IMAGE_3D 		glCompressedTexImage3D
-  #define GL_TEX_IMAGE_3D 			glTexImage3D
-  #define GL_TEX_SUMBIMAGE_3D 			glTexSubImage3D
-  #define GL_COMPRESSED_TEX_SUBIMAGE_3D 	glCompressedTexSubImage3D
-
 #endif
 
 #include <stdlib.h>

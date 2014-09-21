@@ -1,0 +1,5 @@
+./configure --with-gl
+make
+sudo make install
+
+To build for embedded hosts, use ./configure --with-gles
