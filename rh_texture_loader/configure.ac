@@ -15,6 +15,22 @@ AM_INIT_AUTOMAKE
 AC_ARG_WITH([gl], AS_HELP_STRING([--with-gl], [Use OpenGL to create textures.]))
 AC_ARG_WITH([gles], AS_HELP_STRING([--with-gles], [Use OpenGLES to create textures.]))
 
+dnl RASPBERY PI - Try to help the user as much as possible! 
+AC_ARG_WITH(
+  [raspberrypi],
+  AS_HELP_STRING([--with-raspberrypi=SYSROOT_DIR], [Target RaspberryPi. Selects --with-gles]),
+  [
+    with_gles="yes"
+    RPI_SYSROOT="$withval"
+    CPPFLAGS="$CPPFLAGS -I$RPI_SYSROOT/opt/vc/include"
+    LDFLAGS="$LDFLAGS -L$RPI_SYSROOT/opt/vc/lib -Wl,--rpath-link,$RPI_SYSROOT/opt/vc/lib,--rpath,/opt/vc/lib"
+  ],
+  [
+    RPI_SYSROOT=""
+    RPI_LDFLAGS=""
+    RPI_CPPFLAGS=""
+  ])
+
 AS_IF([test "x$with_gl" = "xyes"],
 [
   AC_SEARCH_LIBS(
@@ -23,20 +39,19 @@ AS_IF([test "x$with_gl" = "xyes"],
   AC_CHECK_HEADERS([GL/gl.h],[],[AC_MSG_ERROR([Missing GL/gl.h])])
   AC_CHECK_HEADERS(
     [GL/glext.h],[],
-    [AC_MSG_ERROR([Missing GL/glext])],[#include<GL/gl.h>])
+    [AC_MSG_ERROR([Missing GL/glext.h])],[#include<GL/gl.h>])
 ])
 
 AS_IF([test "x$with_gles" = "xyes"],
 [
   AC_SEARCH_LIBS(
-    [glClear],[GLES],[],
-    AC_MSG_ERROR([Unable to find OpenGLES library]))
+    [glClear],[GLESv2],[],
+    AC_MSG_ERROR([Unable to find OpenGLES library (libGLESv2.so)]))
+  AC_CHECK_HEADERS([GLES2/gl2.h],[],[AC_MSG_ERROR([Missing GLES2/gl2.h])])
+  AC_CHECK_HEADERS(
+    [GLES2/gl2ext.h],[],
+    [AC_MSG_ERROR([Missing GLES2/gl2ext.h])],[#include<GLES2/gl2.h>])
 ])
-
-AS_IF([test "x$with_gles" = "xyes"],
-[AM_CONDITIONAL(WITH_GLES, true)],
-[AM_CONDITIONAL(WITH_GLES, false)])
-
 
 # Checks for programs.
 AC_PROG_CXX
