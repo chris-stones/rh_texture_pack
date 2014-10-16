@@ -108,8 +108,6 @@ extern "C" {
 
 		size_t r;
 
-		printf("read %d bytes from %d\n",count, ftell(p->asset_filesystem) );
-		
 		r = fread(ptr, 1, count, p->asset_filesystem);
 
 		if(r == 0) {
@@ -123,7 +121,6 @@ extern "C" {
 
 	static inline int _SeekAsset_filesystem(rh_file_t * p, off_t offset, int whence ) {
 
-		printf("fseek %d %d %d\n", p->asset_filesystem, offset, whence);
 		return fseek(p->asset_filesystem, offset, whence);
 	}
 

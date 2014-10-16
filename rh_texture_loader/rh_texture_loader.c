@@ -54,8 +54,10 @@ static GLenum get_gl_compression_enum(int libimg_format) {
 	switch(libimg_format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
 	{
 		default:
+		{
 			assert(0 && "unimplemented texture compression");
 			return -1;
+		}
 		case IMG_FMT_COMPONENT_ETC1_INDEX:
 			return GL_ETC1_RGB8_OES;
 		case IMG_FMT_COMPONENT_DXT1_INDEX:
@@ -400,7 +402,6 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 	struct rhtpak_hdr_tex_data *tex_data = NULL;
 
-	GLenum compressed_tex_format = -1;
 	int i;
 
 	if(RHF_SEEK(loader->file, loader->header.text_data_ptr, SEEK_SET) < 0) {
@@ -419,8 +420,6 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 		LOGE("%s - cant read rhtpak_hdr_tex_data\n", __FUNCTION__ );
 		goto err;
 	}
-
-	compressed_tex_format = get_gl_compression_enum( loader->header.format );
 
 	loader->target = GL_TEXTURE_2D;
 
@@ -462,8 +461,6 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	}
 
 	for(i=0;i<loader->header.depth;i++) {
-
-		printf("SEEK %d\n", tex_data[i].channel[0].file_offset);
 
 	    if(RHF_SEEK(loader->file, tex_data[i].channel[0].file_offset, SEEK_SET) < 0) {
 	      LOGE("%s - seek error\n", __FUNCTION__);
