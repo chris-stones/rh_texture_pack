@@ -3,6 +3,7 @@
 #include "rh_texture_internal.h"
 
 #include<stdio.h>
+#include<assert.h>
 
 static int __report_gl_err(const char * file, const char * func, int line) {
 
