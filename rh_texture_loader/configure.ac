@@ -12,8 +12,22 @@ AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
 AM_INIT_AUTOMAKE
 
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_FUNC_ALLOCA
+AC_FUNC_MALLOC
+AC_CHECK_HEADERS([stdlib.h string.h])
+
 AC_ARG_WITH([gl], AS_HELP_STRING([--with-gl], [Use OpenGL to create textures.]))
 AC_ARG_WITH([gles], AS_HELP_STRING([--with-gles], [Use OpenGLES to create textures.]))
+
+AC_ARG_ENABLE(
+  [compressed-3d-textures],
+  AS_HELP_STRING([--enable-compressed-3d-textures], [Enable 3D Compressed Textures.]),
+  [AC_DEFINE(COMPRESSED_3D_TEXTURES, 1, [Enable loading 3d textures in a compressed format])],
+  [AC_DEFINE(NCOMPRESSED_3D_TEXTURES, 1, [Enable loading 3d textures in a compressed format])]
+)
 
 dnl RASPBERY PI - Try to help the user as much as possible! 
 AC_ARG_WITH(
@@ -25,11 +39,8 @@ AC_ARG_WITH(
     CPPFLAGS="$CPPFLAGS -I$RPI_SYSROOT/opt/vc/include"
     LDFLAGS="$LDFLAGS -L$RPI_SYSROOT/opt/vc/lib -Wl,--rpath-link,$RPI_SYSROOT/opt/vc/lib,--rpath,/opt/vc/lib"
   ],
-  [
-    RPI_SYSROOT=""
-    RPI_LDFLAGS=""
-    RPI_CPPFLAGS=""
-  ])
+  []
+)
 
 AS_IF([test "x$with_gl" = "xyes"],
 [
@@ -52,17 +63,6 @@ AS_IF([test "x$with_gles" = "xyes"],
     [GLES2/gl2ext.h],[],
     [AC_MSG_ERROR([Missing GLES2/gl2ext.h])],[#include<GLES2/gl2.h>])
 ])
-
-# Checks for programs.
-AC_PROG_CXX
-AC_PROG_CC
-AC_PROG_INSTALL
-
-# Checks for libraries.
-
-# Checks for header files.
-AC_FUNC_ALLOCA
-AC_CHECK_HEADERS([stdlib.h string.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL

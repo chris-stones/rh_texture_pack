@@ -99,6 +99,7 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 
 	if( header->format & IMG_FMT_COMPONENT_COMPRESSED) {
 
+#if COMPRESSED_3D_TEXTURES
 		GLenum format = get_gl_compression_enum( header->format );
 
 		GLsizei imageSize = ((header->w+3)/4) * ((header->h+3)/4) * header->depth;
@@ -130,8 +131,10 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 			NULL 			// DATA
 		);
 
-
 		return 0;
+#else
+		return -1;
+#endif
 
 	} else {
 
@@ -224,6 +227,8 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 
 	if( tex_data->format & IMG_FMT_COMPONENT_COMPRESSED) {
 
+#if COMPRESSED_3D_TEXTURES
+
 		GLenum format = get_gl_compression_enum( tex_data[i].format );
 
 		GL_COMPRESSED_TEX_SUBIMAGE_3D(
@@ -241,6 +246,9 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 		);
 
 		return 0;
+#else
+		return -1;
+#endif
 
 	} else {
 
@@ -425,6 +433,15 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 	if((loader->header.depth > 1) && (loader->flags & RH_TEXPAK_ENABLE_TEXTURE_ARRAY) && IsExtensionSupported("GL_EXT_texture_array"))
 		loader->target = GL_TEXTURE_2D_ARRAY_EXT;
+
+#if NCOMPRESSED_3D_TEXTURES
+	/*
+	 * Compiled WITHOUT 3D Compressed Texture Support.
+	 * Force compressed textures to be loaded in 2D layers.
+	 */
+	if(loader->header.format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
+		loader->target = GL_TEXTURE_2D;
+#endif
 
 	if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
 		loader->textures_length = 1;
