@@ -15,8 +15,8 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_INSTALL
-AC_FUNC_ALLOCA
-AC_FUNC_MALLOC
+#AC_FUNC_ALLOCA
+#AC_FUNC_MALLOC
 AC_CHECK_HEADERS([stdlib.h string.h])
 
 AC_ARG_WITH([gl], AS_HELP_STRING([--with-gl], [Use OpenGL to create textures.]))
@@ -71,7 +71,6 @@ AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strchr strstr])
 
 AC_CONFIG_FILES([Makefile])
