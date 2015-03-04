@@ -17,7 +17,7 @@ static int AccumulateUnique(UniqueImages & uniqueImages, const Path::Directory &
   return 0;
 }
 
-template<typename _T> static int Pack( 	const Path::Directory & dir,
+template<typename _T> static void Pack( 	const Path::Directory & dir,
 					BinPack2D::ContentAccumulator<_T> &contentAccumulator,
 					UniqueImages &uniqueImages,
 					int pad ) {

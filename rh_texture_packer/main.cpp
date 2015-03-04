@@ -62,7 +62,7 @@ int main(int argc, char ** argv) {
   BinPack2D::ContentAccumulator<ExtraContent> inputContent;
   BinPack2D::ContentAccumulator<ExtraContent> outputContent;
 
-  // recursivly scan path for images.
+  // Recursively scan path for images.
   Path::Directory dir(args.resources);
 
   // a record unique, and alias images.
@@ -75,7 +75,7 @@ int main(int argc, char ** argv) {
 
   inputContent.Sort( );
 
-  // try to pack content into convas.
+  // try to pack content into canvas.
   bool success = canvasArray.Place( inputContent );
 
   if(!success) {
