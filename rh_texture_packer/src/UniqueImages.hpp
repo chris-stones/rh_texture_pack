@@ -8,7 +8,7 @@
 #include<libimg.h>
 #include<libimgutil.h>
 
-#include "config.h"
+#include "args.h"
 
 class LibImg {
 

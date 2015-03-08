@@ -10,7 +10,7 @@
 #include<assert.h>
 #include<string.h>
 
-#include "config.h"
+#include "args.h"
 #include "hash.h"
 #include "file_header.h"
 

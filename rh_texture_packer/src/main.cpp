@@ -1,5 +1,5 @@
 
-#include <binpack2d.hpp>
+#include "binpack2d.hpp"
 #include "Pack.hpp"
 #include "CreateSpriteMap.hpp"
 #include "FindContent.hpp"
@@ -16,7 +16,7 @@
 #include <dirent.h>
 #include <exception>
 
-#include "config.h"
+#include "args.h"
 #include "hash.h"
 #include "lz4.h"
 #include "lz4hc.h"
