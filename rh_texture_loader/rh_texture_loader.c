@@ -730,7 +730,7 @@ int rh_texpak_get_coords(rh_texpak_idx idx, int dim, int stride ,GLfloat *coords
   float * s = &(idx->pak->hash[idx->index].tex_coords[0].s);
 
   // same format? just memcpy it.
-  if(stride==3 && d==3) {
+  if(stride==3 && dim==3) {
 	memcpy(coords,s, 3*3*sizeof(float));
 	return 0;
   }
