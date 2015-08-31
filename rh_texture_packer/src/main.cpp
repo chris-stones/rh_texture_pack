@@ -17,7 +17,7 @@
 #include <exception>
 
 #include "args.h"
-#include "hash.h"
+#include "hash.hpp"
 #include "lz4.h"
 #include "lz4hc.h"
 
@@ -25,6 +25,7 @@
 
 typedef std::string ExtraContent;
 
+// Check for collisions due to case-insensitive file systems, and same-name-different-file-extensions.
 void CheckForCollisions( const std::vector<std::string> &allFiles, const char * res_root ) {
 
   std::vector<std::string>::const_iterator itor = allFiles.begin();
@@ -36,7 +37,7 @@ void CheckForCollisions( const std::vector<std::string> &allFiles, const char * 
 
   while(itor != end) {
 
-    std::string gameresname = get_game_resource_name( *itor, res_root );
+    std::string gameresname = get_game_resource_name( *itor, "", res_root );
 
     int count = ++colmap[ gameresname ];
 
@@ -63,7 +64,7 @@ int main(int argc, char ** argv) {
   BinPack2D::ContentAccumulator<ExtraContent> outputContent;
 
   // Recursively scan path for images.
-  Path::Directory dir(args.resources);
+  Path::Directory dir(args);
 
   // a record unique, and alias images.
   UniqueImages uniqueImages(args);
@@ -90,16 +91,18 @@ int main(int argc, char ** argv) {
 
   int layers = 0;
 
-  imgImage* dst_images[64]; // FIXME!!!
-  memset(dst_images, 0, sizeof dst_images);
+  std::vector<imgImage*> dst_images;
 
   while(itor != end) {
 
     const BinPack2D::Content<ExtraContent> &content = *itor;
 
+    if(content.coord.z >= dst_images.size())
+    	dst_images.resize(content.coord.z+1);
+
     if(!dst_images[content.coord.z]) {
 
-      imgAllocImage(dst_images + content.coord.z);
+      imgAllocImage(&dst_images[content.coord.z]);
       dst_images[content.coord.z]->format = IMG_FMT_FLOAT_RGBA; // error diffusion requires floating colour.
       dst_images[content.coord.z]->width = args.width;
       dst_images[content.coord.z]->height = args.height;
@@ -165,13 +168,16 @@ int main(int argc, char ** argv) {
 
   for(int i=0;i<layers;i++) {
 
-   if(dst_images[i]) {
+   if((layers < dst_images.size()) && dst_images[i]) {
 
      if(args.debug)
       imgWriteFileF(dst_images[i], "rh_tex_pack_out_layer%02d.png", i);
 
      // convert to output native pixel format
      imguCopyImage(native_image, dst_images[i]);
+
+     imgFreeAll(dst_images[i]);
+     dst_images[i] = NULL;
 
      // write it!
      outputFile.WriteLayer( native_image );

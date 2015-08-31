@@ -2,9 +2,34 @@
 #pragma once
 
 #include <boost/filesystem.hpp>
-#include<libimgutil.h>
+#include <libimgutil.h>
+#include "args.h"
+#include "hash.hpp"
 
 namespace fs = boost::filesystem;
+
+namespace SourceData {
+
+	typedef enum {
+		Colour = (1<<0),
+		Alpha  = (1<<1),
+		Full   = Colour | Alpha,
+	} source_data_enum_t;
+
+	const char * ToString(source_data_enum_t source) {
+
+		switch(source) {
+		case Colour:
+			return "SourceData::Colour";
+		case Alpha:
+			return "SourceData::Alpha";
+		case Full:
+			return "SourceData::Full";
+		default:
+			return "SourceData::UNKNOWN";
+		}
+	}
+};
 
 namespace AlphaType {
 typedef enum {
@@ -35,8 +60,14 @@ class Image {
 
     int w;
     int h;
-    std::string path;
-    AlphaType::alpha_enum_t alphaType;
+    std::string real_path;
+    std::string hash_name;
+    SourceData::source_data_enum_t source_data;
+
+    Image(int w, int h, const std::string &real_path, const std::string &hash_name, const SourceData::source_data_enum_t &source_data)
+    	:	w(w), h(h), real_path(real_path), hash_name(hash_name), source_data(source_data)
+    {
+    }
 
 public:
 
@@ -49,7 +80,7 @@ public:
 
     typedef std::vector<Image> Vector;
 
-    Image( const fs::path &full_path ) {
+    Image( const arguments & args, const fs::path &full_path ) {
 
         struct imgImage * image = NULL;
 
@@ -62,8 +93,13 @@ public:
 
         w = image->width;
         h = image->height;
-        path = full_path.native();
-        alphaType = AlphaType::Gradient; // todo!
+        real_path = full_path.native();
+        hash_name = get_game_resource_name(real_path, "", args.resources);
+
+        if(image->format & IMG_FMT_COMPONENT_ALPHA)
+        	source_data = SourceData::Full;
+        else
+        	source_data = SourceData::Colour;
 
         imgFreeAll(image);
     }
@@ -74,9 +110,18 @@ public:
     int GetHeight() const {
         return h;
     }
+    SourceData::source_data_enum_t GetSourceDataType() const {
+
+    	return source_data;
+    }
 
     const std::string &GetFileName() const {
-        return path;
+        return real_path;
+    }
+
+    const std::string &GetResourceName() const {
+
+    	return hash_name;
     }
 
     bool operator < ( const Image & that ) const {
@@ -87,12 +132,24 @@ public:
         if( this->h != that.h )
             return this->h < that.h;
 
-        if( this->alphaType != that.alphaType )
-            return this->alphaType < that.alphaType;
+        if(this->source_data != that.source_data)
+        	return this->source_data < that.source_data;
 
-        return this->path < that.path;
+        return this->real_path < that.real_path;
     }
 
+    bool HasAlpha() const {
+
+    	return GetSourceDataType() & SourceData::Alpha ? true : false;
+    }
+
+    Image RemoveAlpha(const arguments &args) {
+
+		source_data = SourceData::Colour;
+
+		std::string alphaHashName = get_game_resource_name(real_path, "/A/", args.resources);
+		return Image(w,h,real_path,alphaHashName,SourceData::Alpha);
+	}
 };
 
 class Directory {
@@ -111,10 +168,15 @@ public:
         }
     };
 
-    Directory(const fs::path &full_path) {
+    Directory(const arguments & args, const fs::path &full_path) {
 
-        Construct( full_path );
+        Construct(args, full_path );
     }
+
+    Directory(const arguments & args) {
+
+		Construct(args, args.resources );
+	}
 
     const Image::Vector &GetImages( ) 		const {
         return images;
@@ -125,7 +187,7 @@ public:
 
 private:
 
-    void Construct(const fs::path &full_path) {
+    void Construct(const arguments & args, const fs::path &full_path) {
 
         if(!fs::exists(full_path))
             throw OpenDirException();
@@ -138,17 +200,22 @@ private:
 
             if(fs::is_directory( itor->status() )) {
 
-                subDirs.push_back( Directory( itor->path() ));
+                subDirs.push_back( Directory( args, itor->path() ));
 
             } else if( fs::is_regular_file( itor->status() )) {
 
                 try {
 
-                    images.push_back( Image( itor->path() ));
+                	Image image(args, itor->path());
+
+                	if(image.HasAlpha() && !(args.format & IMG_FMT_COMPONENT_ALPHA))
+                		images.push_back(image.RemoveAlpha(args));
+
+                    images.push_back(image);
 
                 } catch(...) {
 
-                    // TODO: distinguish between unsuppoted image format, and attempts to open text files!
+                    // TODO: distinguish between unsupported image format, and attempts to open text files!
                 }
             }
         }

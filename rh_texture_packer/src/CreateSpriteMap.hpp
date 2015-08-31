@@ -11,32 +11,8 @@
 #include<string.h>
 
 #include "args.h"
-#include "hash.h"
 #include "file_header.h"
-
-
-static int tohashable(int c) {
-
-    switch(c) {
-    default:
-        return tolower(c);
-    case '/':
-    case '\\':
-        return '.';
-    }
-}
-
-static std::string get_game_resource_name(std::string hashString, const char * resource_root) {
-
-    int dot = hashString.find_last_of(".");
-    assert(dot != std::string::npos );
-    hashString = hashString.substr(0, dot);
-    std::transform(hashString.begin(), hashString.end(), hashString.begin(), tohashable);
-    hashString = std::string( hashString.begin()+strlen(resource_root), hashString.end() );
-    if(hashString[0] == '.')
-        hashString = std::string( hashString.begin()+1, hashString.end() );
-    return hashString;
-}
+#include "hash.hpp"
 
 template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 
@@ -65,7 +41,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 
             const BinPack2D::Content<_T> &content = *unique_itor;
 
-            std::string hashString = get_game_resource_name(content.content, args.resources);
+            std::string hashString = get_game_resource_name(content.content,"", args.resources);
 
             unsigned int hashval = hash( hashString.c_str() , seed );
 
@@ -144,7 +120,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
                         alias_fn != alias_itor->second.end();
                         alias_fn++)
                 {
-                    std::string alias_s = get_game_resource_name(*alias_fn, args.resources);
+                    std::string alias_s = get_game_resource_name(*alias_fn,"", args.resources);
                     int alias_hashval = hash( alias_s.c_str() , seed );
 
                     if( rmap.find( alias_hashval ) != rmap.end() ) {
@@ -154,7 +130,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
                     }
 
                     // no collisions... map alias.
-                    std::string orig_s = get_game_resource_name(alias_itor->first, args.resources);
+                    std::string orig_s = get_game_resource_name(alias_itor->first, "", args.resources);
 					int orig_hashval = hash( orig_s.c_str(), seed );
                     rmap[alias_hashval] = rmap[orig_hashval];
 					rmap[alias_hashval].hash = alias_hashval;
