@@ -23,35 +23,7 @@
 
 #include "file_header.h"
 
-typedef std::string ExtraContent;
-
-// Check for collisions due to case-insensitive file systems, and same-name-different-file-extensions.
-void CheckForCollisions( const std::vector<std::string> &allFiles, const char * res_root ) {
-
-  std::vector<std::string>::const_iterator itor = allFiles.begin();
-  std::vector<std::string>::const_iterator end  = allFiles.end();
-
-  std::map<std::string, int> colmap;
-
-  int collisions = 0;
-
-  while(itor != end) {
-
-    std::string gameresname = get_game_resource_name( *itor, "", res_root );
-
-    int count = ++colmap[ gameresname ];
-
-    if(count != 1) {
-
-      printf("RESOURCE NAME COLLISION: %s\n", gameresname.c_str());
-      collisions++;
-    }
-
-    itor++;
-  }
-
-  assert(collisions==0);
-}
+typedef Path::Image ExtraContent;
 
 int main(int argc, char ** argv) {
 
@@ -71,8 +43,6 @@ int main(int argc, char ** argv) {
 
   // pack images found above into our bin
   Pack(dir, inputContent, uniqueImages, args.pad );
-
-  CheckForCollisions( uniqueImages.GetAll(), args.resources );
 
   inputContent.Sort( );
 
@@ -108,14 +78,17 @@ int main(int argc, char ** argv) {
       dst_images[content.coord.z]->height = args.height;
       imgAllocPixelBuffers(dst_images[content.coord.z]);
       layers++;
+
+      if(args.debug)
+    	  printf("adding a layer %d\n", layers);
     }
 
     imgImage * src_image = NULL;
 
 	if(args.debug)
-		printf("%s\n", content.content.c_str());
+		printf("%s\n", content.content.GetFileName().c_str());
 
-    imgAllocAndRead(&src_image, content.content.c_str());
+    imgAllocAndRead(&src_image, content.content.GetFileName().c_str());
 
     if(args.pad) {
 
@@ -132,6 +105,33 @@ int main(int argc, char ** argv) {
       imguRotateCW( &rotatedImage, src_image );
       imgFreeAll(src_image);
       src_image = rotatedImage;
+    }
+
+    if(content.content.GetSourceDataType() == SourceData::Alpha) {
+
+    	// We are only interested in the alpha channel!
+
+    	// Make sure source image is in good-old RGBA32 format.
+    	if(src_image->format != IMG_FMT_RGBA32) {
+    		imgImage * rgba32_image = NULL;
+    		imgAllocImage(&rgba32_image);
+    		rgba32_image->format = IMG_FMT_RGBA32;
+    		rgba32_image->width  = src_image->width;
+    		rgba32_image->height = src_image->height;
+    		imgAllocPixelBuffers(rgba32_image);
+    		imgFreeAll(src_image);
+    		src_image = rgba32_image;
+    	}
+
+    	// Copy Alpha channel to Red, Green and Blue. Set Alpha to opaque.
+    	unsigned char * rgba_data = static_cast<unsigned char *>(src_image->data.channel[0]);
+    	for(unsigned int offset=0;offset<src_image->linearsize[0];offset+=4) {
+    		rgba_data[offset+0] =
+    		rgba_data[offset+1] =
+    		rgba_data[offset+2] =
+    		rgba_data[offset+3] ;
+    		rgba_data[offset+3] = 0xFF;
+    	}
     }
 
     imguCopyRect(dst_images[content.coord.z], src_image, content.coord.x, content.coord.y, 0, 0, src_image->width, src_image->height);
@@ -168,12 +168,26 @@ int main(int argc, char ** argv) {
 
   for(int i=0;i<layers;i++) {
 
-   if((layers < dst_images.size()) && dst_images[i]) {
+   if((i < dst_images.size()) && dst_images[i]) {
 
-     if(args.debug)
-      imgWriteFileF(dst_images[i], "rh_tex_pack_out_layer%02d.png", i);
+     if(args.debug) {
+
+    	 imgImage *pngImage = NULL;
+    	 imgAllocImage(&pngImage);
+    	 pngImage->format = IMG_FMT_RGBA32;
+    	 pngImage->width = dst_images[i]->width;
+    	 pngImage->height = dst_images[i]->height;
+    	 imgAllocPixelBuffers(pngImage);
+    	 imguCopyImage(pngImage, dst_images[i]);
+    	 printf("WRITING rh_tex_pack_out_layer%02d.png\n", i);
+    	 imgWriteFileF(pngImage, "rh_tex_pack_out_layer%02d.png", i);
+    	 imgFreeAll(pngImage);
+     }
 
      // convert to output native pixel format
+     printf("Creating layer %d...\n", i);
+
+     // TODO: split into multiple-threads for compressed textures.
      imguCopyImage(native_image, dst_images[i]);
 
      imgFreeAll(dst_images[i]);

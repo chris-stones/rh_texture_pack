@@ -17,7 +17,7 @@
 template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 
     const BinPack2D::ContentAccumulator<_T> &outputContent,
-    const std::map<std::string,std::vector<std::string> > &aliasMap,
+	const std::map<Path::Image, std::vector<Path::Image> > &aliasMap,
     const arguments & args,
     unsigned int * seed_out)
 {
@@ -41,7 +41,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 
             const BinPack2D::Content<_T> &content = *unique_itor;
 
-            std::string hashString = get_game_resource_name(content.content,"", args.resources);
+            const std::string &hashString = content.content.GetResourceName();
 
             unsigned int hashval = hash( hashString.c_str() , seed );
 
@@ -111,16 +111,16 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
         // now link up the aliases!
         if(!hash_collision) {
 
-            std::map<std::string,std::vector<std::string> >::const_iterator alias_itor = aliasMap.begin();
-            std::map<std::string,std::vector<std::string> >::const_iterator alias_end  = aliasMap.end();
+            std::map<Path::Image,std::vector<Path::Image> >::const_iterator alias_itor = aliasMap.begin();
+            std::map<Path::Image,std::vector<Path::Image> >::const_iterator alias_end  = aliasMap.end();
 
             while(alias_itor != alias_end) {
 
-                for(std::vector<std::string>::const_iterator	alias_fn = alias_itor->second.begin();
+                for(std::vector<Path::Image>::const_iterator	alias_fn = alias_itor->second.begin();
                         alias_fn != alias_itor->second.end();
                         alias_fn++)
                 {
-                    std::string alias_s = get_game_resource_name(*alias_fn,"", args.resources);
+                    const std::string &alias_s = alias_fn->GetResourceName();
                     int alias_hashval = hash( alias_s.c_str() , seed );
 
                     if( rmap.find( alias_hashval ) != rmap.end() ) {
@@ -130,7 +130,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
                     }
 
                     // no collisions... map alias.
-                    std::string orig_s = get_game_resource_name(alias_itor->first, "", args.resources);
+                    const std::string &orig_s = alias_itor->first.GetResourceName();
 					int orig_hashval = hash( orig_s.c_str(), seed );
                     rmap[alias_hashval] = rmap[orig_hashval];
 					rmap[alias_hashval].hash = alias_hashval;

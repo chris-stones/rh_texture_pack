@@ -1,5 +1,7 @@
 bin_PROGRAMS = rh_texture_packer
 
+rh_texture_packer_CXXFLAGS = -std=c++11
+
 rh_texture_packer_SOURCES =  CreateSpriteMap.hpp
 rh_texture_packer_SOURCES += file_header.h
 rh_texture_packer_SOURCES += FindContent.hpp

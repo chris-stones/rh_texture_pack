@@ -31,29 +31,6 @@ namespace SourceData {
 	}
 };
 
-namespace AlphaType {
-typedef enum {
-
-    Opaque,
-    Mask,
-    Gradient,
-
-} alpha_enum_t;
-
-const char * ToString( alpha_enum_t type ) {
-    switch(type) {
-    case Opaque:
-        return "AlphaType::Opaque";
-    case Mask:
-        return "AlphaType::Mask";
-    case Gradient:
-        return "AlphaType::Gradient";
-    default :
-        return "AlphaType::UNKNOWN";
-    }
-}
-}
-
 namespace Path {
 
 class Image {
@@ -150,6 +127,11 @@ public:
 		std::string alphaHashName = get_game_resource_name(real_path, "/A/", args.resources);
 		return Image(w,h,real_path,alphaHashName,SourceData::Alpha);
 	}
+
+    bool IsAnAlphaMask() const {
+
+    	return source_data == SourceData::Alpha;
+    }
 };
 
 class Directory {
