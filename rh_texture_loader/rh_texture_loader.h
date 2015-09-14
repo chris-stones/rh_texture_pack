@@ -29,6 +29,7 @@ int rh_texpak_close		(rh_texpak_handle loader);  // close IF refcount is zero. r
 int rh_texpak_forceclose(rh_texpak_handle loader);  // close and return refcount.
 
 int rh_texpak_get		(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx);
+int rh_texpak_alpha_get (rh_texpak_handle loader, const char * name, rh_texpak_idx * idx);
 int rh_texpak_release	(rh_texpak_idx idx);
 
 

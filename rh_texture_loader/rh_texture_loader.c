@@ -668,11 +668,9 @@ int rh_texpak_release(rh_texpak_idx idx) {
 	return -1;
 }
 
-int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+static int _rh_texpak_get(rh_texpak_handle loader, unsigned int key, rh_texpak_idx * idx) {
 
-  if(loader && idx && name) {
-
-	unsigned int key = hash( name, loader->seed );
+  if(loader && idx) {
 
 	struct rhtpak_hdr_hash * res = (struct rhtpak_hdr_hash *)bsearch(&key, loader->hash, loader->hash_length, sizeof(struct rhtpak_hdr_hash ), &compare_hash);
 
@@ -693,6 +691,29 @@ int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * id
 	}
   }
   return -1;
+}
+
+int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+
+  if(name)
+	  return _rh_texpak_get(loader, hash(name, loader->seed), idx);
+
+  return -1;
+}
+
+int rh_texpak_alpha_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+
+	if(name) {
+
+		unsigned int key = hash(name, loader->seed);
+		// THANKS PAUL LARSON.
+		key = key * 101 + (char)'/';
+		key = key * 101 + (char)'A';
+		key = key * 101 + (char)'/';
+
+		return _rh_texpak_get(loader, key, idx);
+	}
+	return -1;
 }
 
 int rh_texpak_get_texture(rh_texpak_idx idx, GLuint *tex) {
