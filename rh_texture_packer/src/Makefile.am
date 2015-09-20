@@ -13,6 +13,8 @@ rh_texture_packer_SOURCES += Pack.hpp
 rh_texture_packer_SOURCES += UniqueImages.hpp
 rh_texture_packer_SOURCES += args.h
 rh_texture_packer_SOURCES += args.c
+rh_texture_packer_SOURCES += opaque_stencil.cpp
+rh_texture_packer_SOURCES += opaque_stencil.hpp
 
 rh_texture_packer_LDADD = $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)

@@ -23,11 +23,16 @@
 
 #include "file_header.h"
 
+#include "opaque_stencil.hpp"
+
 typedef Path::Image ExtraContent;
 
 int main(int argc, char ** argv) {
 
   arguments args = read_args(argc,argv);
+
+  if(!(args.format & IMG_FMT_COMPONENT_ALPHA))
+	  create_opaque_stencil(args.resources);
 
   BinPack2D::CanvasArray<ExtraContent> canvasArray =
     BinPack2D::UniformCanvasArrayBuilder<ExtraContent>(args.width,args.height,args.depth).Build();
