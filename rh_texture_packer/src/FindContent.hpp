@@ -73,10 +73,45 @@ public:
         real_path = full_path.native();
         hash_name = get_game_resource_name(real_path, "", args.resources);
 
-        if(image->format & IMG_FMT_COMPONENT_ALPHA)
-        	source_data = SourceData::Full;
-        else
-        	source_data = SourceData::Colour;
+        source_data = SourceData::Colour;
+
+        if(image->format & IMG_FMT_COMPONENT_ALPHA) {
+
+        	// source image has an alpha channel, but is it actually used?
+
+        	// convert to RGBA32 if not already in that format.
+        	if(image->format != IMG_FMT_RGBA32) {
+
+        		imgImage * rgba32 = NULL;
+        		imgAllocImage(&rgba32);
+        		imgAllocPixelBuffers(image);
+        		imgReadFile(image,fn);
+        		rgba32->format = IMG_FMT_RGBA32;
+        		rgba32->width = image->width;
+        		rgba32->height = image->height;
+        		imgAllocPixelBuffers(rgba32);
+        		imguCopyImage(rgba32,image);
+        		imgFreeAll(image);
+        		image = rgba32;
+        	}
+
+        	{
+        		// Test for any low-opacity pixels...
+				unsigned char * rgba_data = static_cast<unsigned char *>(image->data.channel[0]);
+				for(unsigned int offset=0;offset<image->linearsize[0];offset+=4) {
+					if(rgba_data[offset+3] < 254) {
+						// Got one.. looks like alpha channel is used.
+						//  we can't strip it!
+						source_data = SourceData::Full;
+						break;
+					}
+				}
+        	}
+
+        	if( args.debug && ( source_data == SourceData::Colour ) )
+        		printf("\'%s\' has an unused alpha channel, stripping it.\n", fn);
+        }
+
 
         imgFreeAll(image);
     }
