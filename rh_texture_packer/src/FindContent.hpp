@@ -94,6 +94,10 @@ public:
         		imgFreeAll(image);
         		image = rgba32;
         	}
+		else {
+        		imgAllocPixelBuffers(image);
+        		imgReadFile(image,fn);
+		}
 
         	{
         		// Test for any low-opacity pixels...
