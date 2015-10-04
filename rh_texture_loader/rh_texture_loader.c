@@ -166,7 +166,7 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 
 		GLenum format = get_gl_compression_enum( header->format );
 
-		GLsizei imageSize = ((header->w+3)/4) * ((header->h+3)/4) * header->depth;
+		GLsizei imageSize = ((header->w+3)/4) * ((header->h+3)/4);
 
 		switch(header->format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
 		{
@@ -193,6 +193,10 @@ static int allocate_texture_memory(const struct rhtpak_hdr *header, GLenum targe
 			imageSize,	// IMAGE SIZE
 			NULL 		// DATA
 		);
+
+		if(GL_ERROR()) {
+			return -1;
+		}
 
 		return 0;
 
@@ -410,6 +414,8 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 
 	struct rhtpak_hdr_tex_data *tex_data = NULL;
 
+	GL_ERROR();
+
 	int i;
 
 	if(RHF_SEEK(loader->file, loader->header.text_data_ptr, SEEK_SET) < 0) {
@@ -454,14 +460,29 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 	loader->textures = (GLuint*)calloc(1, sizeof(GLuint) * loader->textures_length );
 	glGenTextures(loader->textures_length, loader->textures);
 	glActiveTexture(GL_TEXTURE0);
+
+	if(GL_ERROR())
+		goto err;
+
 	{
 		int i;
 		for(i=0;i<loader->textures_length;i++) {
+
+			if(GL_ERROR()) {
+				LOGE("Error loading texture index %d (total %d)\n", i, loader->textures_length);
+				goto err;
+			}
 			glBindTexture( loader->target, loader->textures[i]);
+			if(GL_ERROR())goto err;
 			glTexParameteri( loader->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			if(GL_ERROR())goto err;
 			glTexParameteri( loader->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			if(GL_ERROR())goto err;
 			glTexParameteri( loader->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			if(GL_ERROR())goto err;
 			glTexParameteri( loader->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			if(GL_ERROR())goto err;
 
 			if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {
 				if( allocate_texture_array_memory( &loader->header, loader->target ) != 0) {
@@ -532,6 +553,9 @@ int rh_texpak_load ( rh_texpak_handle loader ) {
 			else {
 
 				glBindTexture( loader->target, loader->textures[i]);
+
+				if(GL_ERROR())
+					goto err;
 
 				if(load_texture_data( tex_data, i, uncompressed_buffer, ucsize, loader->target  ) != 0) {
 					LOGE("%s - can't load texture data\n", __FUNCTION__ );
