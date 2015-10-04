@@ -20,6 +20,7 @@ struct arguments
   char *output_file;
   char *log_file;
   char *resources;
+  int quality;
   err_diffuse_kernel_t edk;
   int edk_precision;
   int debug;

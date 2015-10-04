@@ -15,6 +15,7 @@ static char args_doc[] = "RESOURCE_ROOT_PATH";
 static struct argp_option options[] = {
   {"verbose",  'v', 0,      OPTION_ARG_OPTIONAL,  "Produce verbose output" },
   {"quiet",    'q', 0,      OPTION_ARG_OPTIONAL,  "Don't produce any output" },
+  {"quality",  'Q', "HI|MED|LO", 0, "Texture compression Quality." },
   {"output",   'o', "FILE", 0,  "Output to FILE" },
   {"width",    'w', "WIDTH",      0,  "texture atlas width" },
   {"height",   'h', "HEIGHT",      0,  "texture atlas height" },
@@ -132,6 +133,24 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
     }
       argp_usage( state );
       break;
+
+    case 'Q':
+    {
+      if(strcasecmp(arg,"HI")==0) {
+    	  arguments->quality = 0;
+    	  break;
+      }
+      if(strcasecmp(arg,"MED")==0) {
+	    arguments->quality = 1;
+	    break;
+	  }
+      if(strcasecmp(arg,"LO")==0) {
+	    arguments->quality = 2;
+	    break;
+	  }
+    }
+    argp_usage( state );
+    break;
 
     case ARGP_KEY_ARG:
       if (state->arg_num >= 1)

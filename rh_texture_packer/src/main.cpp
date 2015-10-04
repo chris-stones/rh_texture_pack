@@ -192,8 +192,23 @@ int main(int argc, char ** argv) {
      // convert to output native pixel format
      printf("Creating layer %d...\n", i);
 
+
+     copy_quality_t quality;
+     switch(args.quality) {
+     default:
+     case 0:
+       quality = COPY_QUALITY_HIGHEST;
+       break;
+     case 1:
+       quality = COPY_QUALITY_MEDIUM;
+       break;
+     case 2:
+       quality = COPY_QUALITY_LOWEST;
+       break;
+     }
+
      // TODO: split into multiple-threads for compressed textures.
-     imguCopyImage(native_image, dst_images[i]);
+     imguCopyImage3(native_image, dst_images[i], ERR_DIFFUSE_KERNEL_DEFAULT,quality);
 
      imgFreeAll(dst_images[i]);
      dst_images[i] = NULL;
