@@ -5,9 +5,16 @@
 #if defined(HAVE_CONFIG_H)
   #include <config.h>
 #elif defined(__ANDROID__)
-  // not building with GNU Auto tools :(
+  // not building with GNU Auto tools, on Android :(
   #define HAVE_GLES2_GL2_H 1
   #define HAVE_GLES2_GL2EXT_H 1
+#elif defined(_MSC_VER)
+// not building with GNU Auto tools, On win32.
+#define HAVE_GL_GL_H 1 
+#define HAVE_WINDOWS_H 1
+#define HAVE_GL_GLEW_H 1
+#define COMPRESSED_3D_TEXTURES 1 /* compressed 3d textures! */
+//#define NCOMPRESSED_3D_TEXTURES 1 /* NO compressed 3d textures! */
 #endif
 
 #include "rh_file.h"
@@ -24,6 +31,14 @@
 #endif
 
 #define GL_GLEXT_PROTOTYPES 1
+
+#if HAVE_WINDOWS_H
+#include<Windows.h>
+#endif
+
+#if HAVE_GL_GLEW_H
+#include <GL/glew.h>
+#endif
 
 #if HAVE_GLES2_GL2_H
   #include <GLES2/gl2.h>

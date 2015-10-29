@@ -1,4 +1,5 @@
 
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "rh_texture_internal.h"
 
@@ -342,7 +343,7 @@ static int _setup_access_functionptrs(rh_texpak_handle  _loader) {
 	return 0;
 }
 
-int rh_texpak_open (const char * gfx_file, rh_texpak_handle * loader_out, int flags) {
+int RHTPL_DLL rh_texpak_open(const char * gfx_file, rh_texpak_handle * loader_out, int flags) {
 
   struct _texpak_type * loader = NULL;
 
@@ -405,7 +406,7 @@ err:
   return -1;
 }
 
-int rh_texpak_load ( rh_texpak_handle loader ) {
+int RHTPL_DLL rh_texpak_load(rh_texpak_handle loader) {
 
 	unsigned int uncompressed_buffer_size = 0;
 	void * uncompressed_buffer = 0;
@@ -608,7 +609,7 @@ err:
 
 // closes the pak.
 // returns the number of still open references.
-int rh_texpak_forceclose(rh_texpak_handle loader) {
+int RHTPL_DLL rh_texpak_forceclose(rh_texpak_handle loader) {
 
 	int err = 0;
 	if(loader) {
@@ -625,7 +626,7 @@ int rh_texpak_forceclose(rh_texpak_handle loader) {
 
 // If the reference count is zero, closes the exture pak and returns zero.
 // If the reference count is NOT zero, returns the number of still open references WITHOUT closing the pak.
-int rh_texpak_close(rh_texpak_handle loader) {
+int RHTPL_DLL rh_texpak_close(rh_texpak_handle loader) {
 
 	int err = 0;
 
@@ -682,7 +683,7 @@ static int compare_hash(const void * key, const void * memb) {
 	return 0;
 }
 
-int rh_texpak_release(rh_texpak_idx idx) {
+int RHTPL_DLL rh_texpak_release(rh_texpak_idx idx) {
 
 	if(idx) {
 		idx->pak->refcount--;
@@ -717,7 +718,7 @@ static int _rh_texpak_get(rh_texpak_handle loader, unsigned int key, rh_texpak_i
   return -1;
 }
 
-int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+int RHTPL_DLL rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
 
   if(name)
 	  return _rh_texpak_get(loader, hash(name, loader->seed), idx);
@@ -725,7 +726,7 @@ int rh_texpak_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * id
   return -1;
 }
 
-int rh_texpak_alpha_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
+int RHTPL_DLL rh_texpak_alpha_get(rh_texpak_handle loader, const char * name, rh_texpak_idx * idx) {
 
 	if(name) {
 
@@ -740,14 +741,14 @@ int rh_texpak_alpha_get(rh_texpak_handle loader, const char * name, rh_texpak_id
 	return -1;
 }
 
-int rh_texpak_get_texture(rh_texpak_idx idx, GLuint *tex) {
+int RHTPL_DLL rh_texpak_get_texture(rh_texpak_idx idx, GLuint *tex) {
 
   *tex = idx->pak->textures[ idx->pak->hash[idx->index].i ];
 
   return 0;
 }
 
-int rh_texpak_get_size(rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
+int RHTPL_DLL rh_texpak_get_size(rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
 
   if(w) *w = idx->pak->hash[idx->index].orig_w;
   if(h) *h = idx->pak->hash[idx->index].orig_h;
@@ -755,19 +756,19 @@ int rh_texpak_get_size(rh_texpak_idx idx, unsigned int *w, unsigned int *h) {
   return 0;
 }
 
-int rh_texpak_get_depthi(rh_texpak_idx idx, unsigned int *i) {
+int RHTPL_DLL rh_texpak_get_depthi(rh_texpak_idx idx, unsigned int *i) {
 
   *i = idx->pak->hash[idx->index].i;
   return 0;
 }
 
-int rh_texpak_get_depthf(rh_texpak_idx idx, GLfloat *f) {
+int RHTPL_DLL rh_texpak_get_depthf(rh_texpak_idx idx, GLfloat *f) {
 
   *f = idx->pak->hash[idx->index].tex_coords[0].p;
   return 0;
 }
 
-int rh_texpak_get_coords(rh_texpak_idx idx, int dim, int stride ,GLfloat *coords) {
+int RHTPL_DLL rh_texpak_get_coords(rh_texpak_idx idx, int dim, int stride, GLfloat *coords) {
 
   int c;
   int d;
@@ -801,13 +802,13 @@ int rh_texpak_get_coords(rh_texpak_idx idx, int dim, int stride ,GLfloat *coords
   return 0;
 }
 
-int rh_texpak_get_textures(rh_texpak_handle loader, int *texcount) {
+int RHTPL_DLL rh_texpak_get_textures(rh_texpak_handle loader, int *texcount) {
 
   *texcount = loader->textures_length;
   return 0;
 }
 
-int rh_texpak_get_textarget(rh_texpak_handle loader, GLenum *target) {
+int RHTPL_DLL rh_texpak_get_textarget(rh_texpak_handle loader, GLenum *target) {
 
   *target = loader->target;
   return 0;

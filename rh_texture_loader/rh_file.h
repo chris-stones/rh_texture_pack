@@ -7,6 +7,19 @@
 	#include<android/asset_manager.h>
 #endif
 
+#ifdef _MSC_VER
+#define RHF_OFF_T long
+#define RH_INLINE
+#endif
+
+#ifndef RHF_OFF_T
+#define RHF_OFF_T off_t
+#endif
+
+#ifndef RH_INLINE
+#define RH_INLINE inline
+#endif
+
 #define RHF_OPEN(   x,a  ) x.open(   &(x),a)
 #define RHF_CLOSE(  x    ) x.close(  &(x))
 #define RHF_READ(   x,a,b) x.read(   &(x),a,b)
@@ -22,7 +35,7 @@ extern "C" {
 
 	typedef int (*OPENASSET_FUNC_T  )	(rh_file_t * p, const char * file);
 	typedef int (*READASSET_FUNC_T  )	(rh_file_t * p, void * ptr, size_t count);
-	typedef int (*SEEKASSET_FUNC_T  )	(rh_file_t * p, off_t offset, int whence);
+	typedef int(*SEEKASSET_FUNC_T)	(rh_file_t * p, RHF_OFF_T offset, int whence);
 	typedef int (*CLOSEASSET_FUNC_T )	(rh_file_t * p);
 	typedef int (*GETASSETMGR_FUNC_T)	(rh_file_t * p);
 
@@ -46,7 +59,7 @@ extern "C" {
 
 	#ifdef __ANDROID__
 
-	static inline int _OpenAsset_android( rh_file_t * p, const char * file) {
+	static RH_INLINE int _OpenAsset_android( rh_file_t * p, const char * file) {
 
 		if((p->asset_android = AAssetManager_open( p->assetManager_android, file, AASSET_MODE_STREAMING)))
 			return 0;
@@ -54,18 +67,18 @@ extern "C" {
 		return -1;
 	}
 
-	static inline int _ReadAsset_android(rh_file_t * p, void * ptr, size_t count) {
+	static RH_INLINE int _ReadAsset_android(rh_file_t * p, void * ptr, size_t count) {
 
 		return AAsset_read(p->asset_android, ptr, count);
 	}
 
 	// returns -1 on error.
-	static inline int _SeekAsset_android(rh_file_t * p, off_t offset, int whence ) {
+	static RH_INLINE int _SeekAsset_android(rh_file_t * p, RHF_OFF_T offset, int whence ) {
 
 		return AAsset_seek(p->asset_android, offset, whence);
 	}
 
-	static inline int _CloseAsset_android(rh_file_t * p) {
+	static RH_INLINE int _CloseAsset_android(rh_file_t * p) {
 
 		if(p->asset_android) {
 			AAsset_close(p->asset_android);
@@ -75,7 +88,7 @@ extern "C" {
 		return 0;
 	}
 
-	static inline int _GetAssetManager_android(rh_file_t * p) {
+	static RH_INLINE int _GetAssetManager_android(rh_file_t * p) {
 
 	  /*** MEGGA HACK! ***/
 	  extern AAssetManager * __rh_hack_get_android_asset_manager();
@@ -85,7 +98,7 @@ extern "C" {
 	  return 0;
 	}
 
-	static inline void _setup_file_android(rh_file_t * p) {
+	static RH_INLINE void _setup_file_android(rh_file_t * p) {
 
 		p->open = &_OpenAsset_android;
 		p->close = &_CloseAsset_android;
@@ -95,7 +108,7 @@ extern "C" {
 	}
 #endif
 
-	static inline int _OpenAsset_filesystem( rh_file_t * p, const char * file) {
+	static RH_INLINE int _OpenAsset_filesystem(rh_file_t * p, const char * file) {
 
 		if(( p->asset_filesystem = fopen(file, "rb")))
 			return 0;
@@ -104,7 +117,7 @@ extern "C" {
 	}
 
 	// returns -1 on error. 0 on EOF, else, the bytes read.
-	static inline int _ReadAsset_filesystem(rh_file_t * p, void * ptr, size_t count) {
+	static RH_INLINE int _ReadAsset_filesystem(rh_file_t * p, void * ptr, size_t count) {
 
 		size_t r;
 
@@ -119,12 +132,12 @@ extern "C" {
 		return r;
 	}
 
-	static inline int _SeekAsset_filesystem(rh_file_t * p, off_t offset, int whence ) {
+	static RH_INLINE int _SeekAsset_filesystem(rh_file_t * p, RHF_OFF_T offset, int whence) {
 
 		return fseek(p->asset_filesystem, offset, whence);
 	}
 
-	static inline int _CloseAsset_filesystem(rh_file_t * p) {
+	static RH_INLINE int _CloseAsset_filesystem(rh_file_t * p) {
 
 		if(p->asset_filesystem) {
 			fclose(p->asset_filesystem);
@@ -134,12 +147,12 @@ extern "C" {
 		return 0;
 	}
 
-	static inline int _GetAssetManager_filesystem(rh_file_t * p) {
+	static RH_INLINE int _GetAssetManager_filesystem(rh_file_t * p) {
 
 	  return 0;
 	}
 
-	static inline void _setup_file_filesystem(rh_file_t * p) {
+	static RH_INLINE void _setup_file_filesystem(rh_file_t * p) {
 
 		p->open = &_OpenAsset_filesystem;
 		p->close = &_CloseAsset_filesystem;
