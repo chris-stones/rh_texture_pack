@@ -139,6 +139,7 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 
 	} else {
 
+#ifdef _3D_TEXTURES
 		GLint internal_format = get_uncompressed_internal_format( header->format );
 		GLint data_type       = get_uncompressed_datatype( header->format );
 
@@ -156,6 +157,7 @@ static int allocate_texture_array_memory(const struct rhtpak_hdr *header, GLenum
 		);
 
 		return 0;
+#endif /* _3D_TEXTURES */
 	}
 
 	return -1;
@@ -259,7 +261,7 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 
 		GLint internal_format = get_uncompressed_internal_format( tex_data[i].format );
 		GLint data_type       = get_uncompressed_datatype( tex_data[i].format );
-
+#ifdef _3D_TEXTURES
 		GL_TEX_SUMBIMAGE_3D(
 				target,			// TARGET
 				0,			// LEVEL
@@ -275,6 +277,7 @@ static int load_texture_array_data( const struct rhtpak_hdr_tex_data *tex_data, 
 		);
 
 		return 0;
+#endif
 	}
 
 
@@ -448,6 +451,13 @@ int RHTPL_DLL rh_texpak_load(rh_texpak_handle loader) {
 	 */
 	if(loader->header.format & IMG_FMT_COMPONENT_COMPRESSION_INDEX_MASK)
 		loader->target = GL_TEXTURE_2D;
+#endif
+
+#if N3D_TEXTURES
+	/* Compiled WITHOUT 3d texture support at all
+	 * Force all textures to be loaded in 2D layers.
+	 */
+	loader->target = GL_TEXTURE_2D;
 #endif
 
 	if(loader->target == GL_TEXTURE_2D_ARRAY_EXT) {

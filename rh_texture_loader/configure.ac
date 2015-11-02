@@ -26,7 +26,14 @@ AC_ARG_ENABLE(
   [compressed-3d-textures],
   AS_HELP_STRING([--enable-compressed-3d-textures], [Enable 3D Compressed Textures.]),
   [AC_DEFINE(COMPRESSED_3D_TEXTURES, 1, [Enable loading 3d textures in a compressed format])],
-  [AC_DEFINE(NCOMPRESSED_3D_TEXTURES, 1, [Enable loading 3d textures in a compressed format])]
+  [AC_DEFINE(NCOMPRESSED_3D_TEXTURES, 1, [Disnable loading 3d textures in a compressed format])]
+)
+
+AC_ARG_ENABLE(
+  [3d-textures],
+  AS_HELP_STRING([--enable-3d-textures], [Enable 3D Textures.]),
+  [AC_DEFINE(_3D_TEXTURES, 1, [Enable loading 3d textures format])],
+  [AC_DEFINE(N3D_TEXTURES, 1, [Disable loading 3d textures format])]
 )
 
 dnl RASPBERY PI - Try to help the user as much as possible! 
