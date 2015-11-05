@@ -61,16 +61,17 @@ public:
 
         struct imgImage * image = NULL;
 
-        const char * fn = full_path.native().c_str();
+		std::string _fn = full_path.string();
 
-        if( imgAllocAndStat(&image, fn) != IMG_OKAY ) {
+        if( imgAllocAndStat(&image, _fn.c_str()) != IMG_OKAY ) {
 
             throw OpenImageException();
         }
 
         w = image->width;
         h = image->height;
-        real_path = full_path.native();
+//      real_path = full_path.native();
+		real_path = full_path.string();
         hash_name = get_game_resource_name(real_path, "", args.resources);
 
         source_data = SourceData::Colour;
@@ -85,7 +86,7 @@ public:
         		imgImage * rgba32 = NULL;
         		imgAllocImage(&rgba32);
         		imgAllocPixelBuffers(image);
-        		imgReadFile(image,fn);
+				imgReadFile(image, _fn.c_str());
         		rgba32->format = IMG_FMT_RGBA32;
         		rgba32->width = image->width;
         		rgba32->height = image->height;
@@ -96,13 +97,13 @@ public:
         	}
 		else {
         		imgAllocPixelBuffers(image);
-        		imgReadFile(image,fn);
+				imgReadFile(image, _fn.c_str());
 		}
 
         	{
         		// Test for any low-opacity pixels...
 				unsigned char * rgba_data = static_cast<unsigned char *>(image->data.channel[0]);
-				for(unsigned int offset=0;offset<image->linearsize[0];offset+=4) {
+				for(unsigned int offset=0;offset<(unsigned int)(image->linearsize[0]);offset+=4) {
 					if(rgba_data[offset+3] < 254) {
 						// Got one.. looks like alpha channel is used.
 						//  we can't strip it!
@@ -113,7 +114,7 @@ public:
         	}
 
         	if( args.debug && ( source_data == SourceData::Colour ) )
-        		printf("\'%s\' has an unused alpha channel, stripping it.\n", fn);
+				printf("\'%s\' has an unused alpha channel, stripping it.\n", _fn.c_str());
         }
 
 

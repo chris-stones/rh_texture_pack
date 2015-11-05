@@ -136,7 +136,7 @@ public:
     layer.format = img->format;
     layer.channels = imgGetChannels(img->format);
 
-    for(int channel = 0; channel < layer.channels; channel++ ) {
+    for(int channel = 0; channel < (int)(layer.channels); channel++ ) {
 
       int src_len = img->linearsize[channel];
 
