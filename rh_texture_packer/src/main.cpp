@@ -13,7 +13,7 @@
 #include<algorithm>
 
 #include <sys/types.h>
-#include <dirent.h>
+//#include <dirent.h>
 #include <exception>
 
 #include "args.h"
@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
 
     const BinPack2D::Content<ExtraContent> &content = *itor;
 
-    if(content.coord.z >= dst_images.size())
+    if(content.coord.z >= (int)dst_images.size())
     	dst_images.resize(content.coord.z+1);
 
     if(!dst_images[content.coord.z]) {
@@ -130,7 +130,7 @@ int main(int argc, char ** argv) {
 
     	// Copy Alpha channel to Red, Green and Blue. Set Alpha to opaque.
     	unsigned char * rgba_data = static_cast<unsigned char *>(src_image->data.channel[0]);
-    	for(unsigned int offset=0;offset<src_image->linearsize[0];offset+=4) {
+    	for(unsigned int offset=0;offset<(unsigned int)src_image->linearsize[0];offset+=4) {
     		rgba_data[offset+0] =
     		rgba_data[offset+1] =
     		rgba_data[offset+2] =
@@ -173,7 +173,7 @@ int main(int argc, char ** argv) {
 
   for(int i=0;i<layers;i++) {
 
-   if((i < dst_images.size()) && dst_images[i]) {
+   if((i < (int)dst_images.size()) && dst_images[i]) {
 
      if(args.debug) {
 
