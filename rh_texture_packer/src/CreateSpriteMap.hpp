@@ -85,6 +85,7 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
                 const int BOT_RIGHT = 3;
 
                 rhtpak_hdr_hash rres = res;
+
                 rres.tex_coords[TOP_LEFT] = res.tex_coords[TOP_RIGHT];
                 rres.tex_coords[BOT_LEFT] = res.tex_coords[TOP_LEFT];
                 rres.tex_coords[TOP_RIGHT] = res.tex_coords[BOT_RIGHT];
@@ -92,7 +93,23 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
                 rres.w = res.h;
                 rres.h = res.w;
 
+                if(args.debug) {
+                	printf("pre-rotated tex-coords\n");
+                	printf("  %1.6f  %1.6f\n",res.tex_coords[0].s,res.tex_coords[0].t);
+                	printf("  %1.6f  %1.6f\n",res.tex_coords[1].s,res.tex_coords[1].t);
+                	printf("  %1.6f  %1.6f\n",res.tex_coords[2].s,res.tex_coords[2].t);
+                	printf("  %1.6f  %1.6f\n",res.tex_coords[3].s,res.tex_coords[3].t);
+                }
+
                 res = rres;
+
+                if(args.debug) {
+					printf("post-rotated tex-coords\n");
+					printf("  %1.6f  %1.6f\n",res.tex_coords[0].s,res.tex_coords[0].t);
+					printf("  %1.6f  %1.6f\n",res.tex_coords[1].s,res.tex_coords[1].t);
+					printf("  %1.6f  %1.6f\n",res.tex_coords[2].s,res.tex_coords[2].t);
+					printf("  %1.6f  %1.6f\n",res.tex_coords[3].s,res.tex_coords[3].t);
+				}
             }
 
             if(args.debug) {
@@ -136,13 +153,15 @@ template<typename _T> std::map< unsigned int, rhtpak_hdr_hash > CreateSpriteMap(
 					rmap[alias_hashval].hash = alias_hashval;
 
 					if(args.debug) {
-						printf("ALIAS  HASH [0x%08x]=>[0x%08x] \"%s\"=>\"%s\" {i:%2d, w:%4d, h:%4d, [0]{%08f,%08f}, [2]{%08f,%08f}}\n",
+						printf("ALIAS  HASH [0x%08x]=>[0x%08x] \"%s\"=>\"%s\" {i:%2d, w:%4d, h:%4d, \n  [0]{%08f,%08f},\n  [1]{%08f,%08f},\n  [2]{%08f,%08f},\n  [3]{%08f,%08f}}\n",
 							alias_hashval,   orig_hashval,
 							alias_s.c_str(), orig_s.c_str(),
 							rmap[alias_hashval].i,
 							rmap[alias_hashval].w, rmap[alias_hashval].h,
 							rmap[alias_hashval].tex_coords[0].s, rmap[alias_hashval].tex_coords[0].t,
-							rmap[alias_hashval].tex_coords[2].s, rmap[alias_hashval].tex_coords[2].t );
+							rmap[alias_hashval].tex_coords[1].s, rmap[alias_hashval].tex_coords[1].t,
+							rmap[alias_hashval].tex_coords[2].s, rmap[alias_hashval].tex_coords[2].t,
+							rmap[alias_hashval].tex_coords[3].s, rmap[alias_hashval].tex_coords[3].t );
 					}
                 }
 

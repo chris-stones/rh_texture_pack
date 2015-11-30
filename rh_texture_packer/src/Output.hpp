@@ -186,8 +186,13 @@ public:
 
 		const rhtpak_hdr_hash &hash = itor->second;
 
-		if(args.debug)
+		if(args.debug) {
 			printf("@ 0x%08x: hash: 0x%08x\n", (int)ftell(file), hash.hash );
+			printf("    %1.6f  %1.6f\n", hash.tex_coords[0].s, hash.tex_coords[0].t);
+			printf("    %1.6f  %1.6f\n", hash.tex_coords[1].s, hash.tex_coords[1].t);
+			printf("    %1.6f  %1.6f\n", hash.tex_coords[2].s, hash.tex_coords[2].t);
+			printf("    %1.6f  %1.6f\n", hash.tex_coords[3].s, hash.tex_coords[3].t);
+		}
 
 		Write(hash);
 
